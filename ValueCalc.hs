@@ -6,10 +6,11 @@ import KParser
 
 main :: IO ()
 main = do putStrLn "Hello!"
+          file <- readFile "DPS-10K-12.31.12.html"
           putStrLn "First commit!"
           putStrLn "What to come?!"
           morePrinting
-          parsed <- doParse " wowowParseThis "
+          parsed <- doParse (take 1000 file)
           putStrLn parsed
 
 morePrinting :: IO ()
