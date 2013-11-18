@@ -35,6 +35,23 @@ header = do string "<DOCUMENT>"
             string "<TEXT>"
             return (typ,sequence,typ2)
 
+-- statement of income
+incomeStatement :: Parser (String,String,String)
+incomeStatement = do many line
+                     netSales <-string "<font style=\"font-family:inherit;font-size:10pt;font-weight:bold;\">Statements of Income Data:</font>"
+                     grossProfit <- specificLine "Gross profit"
+                     incomeLoss  <- specificLine "Income (loss) from operations"
+                     return (netSales,grossProfit,incomeLoss)
+
+line :: Parser String
+line = do line <- many anyChar
+          char '\n'
+          return line
+
+specificLine :: String -> Parser String
+specificLine starter = manyTill anyChar newline
+
+
 title :: Parser String
 title = do spaces
            first <- letter
@@ -51,4 +68,4 @@ run p input = case parse p "" input of
                    Right x -> return (show x)
 
 doParse :: String -> IO String
-doParse str = run header str
+doParse str = run incomeStatement str
