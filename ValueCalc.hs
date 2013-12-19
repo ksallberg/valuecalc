@@ -3,25 +3,21 @@ module ValueCalc (
 ) where
 
 import KParser
+import Scraper
 
+{-
+   use the loadMDCA function get data points
+   from the edgar website
+
+   TODO: read the data properly and pass 
+         the information to some calculation module
+-}
 main :: IO ()
-main = do putStrLn "Hello!"
-          file <- readFile "DPS-10K-12.31.12.html"
-          putStrLn "First commit!"
-          putStrLn "What to come?!"
-          morePrinting
-          parsed <- doParse (take 1000 file)
-          putStrLn parsed
+main = do putStrLn "Test parsing MDCA"
+          loadMDCA
+          putStrLn "exiting"
 
-morePrinting :: IO ()
-morePrinting = do putStrLn "Some testing"
-                  putStrLn "Will this work?"
-
-test :: [] Int
-test = do aoa <- return 2
-          let awd = 223
-          return (35+aoa+awd)
-
-test2 :: [] Int
-test2 = (return 2) >>= 
-           (\x->( (return 202) >>= (\y-> return x)))
+loadMDCA :: IO ()
+loadMDCA = do info <- parse "http://www.sec.gov/Archives/edgar/data/876883/000114420412014991/v303734_10k.htm"
+              putStrLn $ "name: " ++ (name info)
+              putStrLn $ "total assets: " ++ show (totalAssets info)

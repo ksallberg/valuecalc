@@ -1,3 +1,10 @@
+{-
+   
+   OLD: Abandonen parsec version of the html parser
+        Doesn't really suit the HTML structure,
+        instead I'm now using TagSoup, see the Scraper module
+
+-}
 module KParser (
 
      Company(..)
