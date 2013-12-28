@@ -34,21 +34,21 @@ dropEmpty (x:xs)            = x : dropEmpty xs
 
 -- Convert from million dollar string
 -- to dollar int
-fromMilDol :: String -> Int
+fromMilDol :: String -> Integer
 fromMilDol str =
    read ([x|x<-takeWhile (\x->x/='.') str,x/=',']
-         ++(take 6 (repeat '0'))) :: Int
+         ++(take 6 (repeat '0'))) :: Integer
 
 -- Convert from dollar sign and commas to just an Int
-fromDolSign :: String -> Int
-fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Int
+fromDolSign :: String -> Integer
+fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Integer
 
 data Company = Company {
       
       name             :: String,
-      totalAssets      :: Int,
-      totalLiabilities :: Int,
-      marketCap        :: Int
+      totalAssets      :: Integer,
+      totalLiabilities :: Integer,
+      marketCap        :: Integer
 
    } deriving (Show,Read)
 
