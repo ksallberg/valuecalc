@@ -19,6 +19,11 @@ dropWhitespace :: Tag String -> Tag String
 dropWhitespace (TagText str) = (TagText (unwords (words str)))
 dropWhitespace x = x
 
+dropEmpty :: [Tag String] -> [Tag String]
+dropEmpty []                = []
+dropEmpty ((TagText ""):xs) = [] ++ dropEmpty xs
+dropEmpty (x:xs)            = x : dropEmpty xs
+
 data Company = Company {
       
       name :: String,
@@ -37,11 +42,11 @@ parse :: String -> IO Company
 parse x = do
     http <- simpleHTTP (getRequest x) >>= getResponseBody
     let tags = parseTags http
-        reducedLs = (map dropWhitespace tags)
+        reducedLs = dropEmpty (map dropWhitespace tags)
         tota = dropWhile (~/= asst) reducedLs
     --putStrLn $ "amount" ++ (show $ take 20 tota)
     --forM_ (take 20 tota) (\x->putStrLn $ "hmm:" ++ show x)
-    let (TagText totAssets) = (take 20 tota) !! 8
+    let (TagText totAssets) = (take 20 tota) !! 5
         parsedTotAssets = read totAssets :: Int
 
     return Company{name="mdca", totalAssets=totAssets}
