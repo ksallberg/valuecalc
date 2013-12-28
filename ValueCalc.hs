@@ -23,3 +23,4 @@ loadMDCA =
    do info <- parse "http://stockreports.nasdaq.edgar-online.com/mdca.html"
       putStrLn $ "name: " ++ (name info)
       putStrLn $ "total assets: " ++ show (totalAssets info)
+      putStrLn $ "total liabilities: " ++ show (totalLiabilities info)
