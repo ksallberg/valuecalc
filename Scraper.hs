@@ -15,13 +15,9 @@ import Control.Monad
 asst :: Tag String
 asst = TagText "Total Assets"
 
-
 dropWhitespace :: Tag String -> Tag String
 dropWhitespace (TagText str) = (TagText (unwords (words str)))
 dropWhitespace x = x
-
--- totAsstText :: Tag String
--- totAsstText = TagText "T"
 
 data Company = Company {
       
@@ -41,10 +37,11 @@ parse :: String -> IO Company
 parse x = do
     http <- simpleHTTP (getRequest x) >>= getResponseBody
     let tags = parseTags http
-        tota = dropWhile (~/= asst) (map dropWhitespace tags)
-    putStrLn $ "amount" ++ (show tota)
-    forM_ tota (\x->putStrLn $ "hmm:" ++ show x)
-    let (TagText totAssets) = (take 20 tota) !! 14
+        reducedLs = (map dropWhitespace tags)
+        tota = dropWhile (~/= asst) reducedLs
+    --putStrLn $ "amount" ++ (show $ take 20 tota)
+    --forM_ (take 20 tota) (\x->putStrLn $ "hmm:" ++ show x)
+    let (TagText totAssets) = (take 20 tota) !! 8
         parsedTotAssets = read totAssets :: Int
 
     return Company{name="mdca", totalAssets=totAssets}
