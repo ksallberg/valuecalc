@@ -14,13 +14,12 @@ import Scraper
 -}
 main :: IO ()
 main =
-   do putStrLn "Test parsing MDCA"
-      loadMDCA
+   do loadMDCA
       putStrLn "exiting"
 
 loadMDCA :: IO ()
 loadMDCA =
-   do info <- parse "http://stockreports.nasdaq.edgar-online.com/mdca.html"
+   do info <- parse "http://stockreports.nasdaq.edgar-online.com/msft.html"
       putStrLn $ "name: " ++ (name info)
       putStrLn $ "total assets: " ++ show (totalAssets info)
       putStrLn $ "total liabilities: " ++ show (totalLiabilities info)

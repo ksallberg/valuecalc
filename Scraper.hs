@@ -44,7 +44,6 @@ parse link =
           reducedLs = dropEmpty (map dropWhitespace tags)
       totalAssets <- getTotalAssets reducedLs
       totalLiab   <- getTotalLiabilities reducedLs
-      putStrLn totalLiab
       return Company{name             = ticker,
                      totalAssets      = totalAssets,
                      totalLiabilities = totalLiab}
