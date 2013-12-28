@@ -32,12 +32,23 @@ dropEmpty []                = []
 dropEmpty ((TagText ""):xs) = [] ++ dropEmpty xs
 dropEmpty (x:xs)            = x : dropEmpty xs
 
+-- Convert from million dollar string
+-- to dollar int
+fromMilDol :: String -> Int
+fromMilDol str =
+   read ([x|x<-takeWhile (\x->x/='.') str,x/=',']
+         ++(take 6 (repeat '0'))) :: Int
+
+-- Convert from dollar sign and commas to just an Int
+fromDolSign :: String -> Int
+fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Int
+
 data Company = Company {
       
       name             :: String,
-      totalAssets      :: String,
-      totalLiabilities :: String,
-      marketCap        :: String
+      totalAssets      :: Int,
+      totalLiabilities :: Int,
+      marketCap        :: Int
 
    } deriving (Show,Read)
 
@@ -61,9 +72,9 @@ parse ticker =
       totalLiab   <- getTotalLiabilities reducedLs
       marketCap   <- getMarketCap marketLink
       return Company{name             = ticker,
-                     totalAssets      = totalAssets,
-                     totalLiabilities = totalLiab,
-                     marketCap        = marketCap}
+                     totalAssets      = fromMilDol  totalAssets,
+                     totalLiabilities = fromMilDol  totalLiab,
+                     marketCap        = fromDolSign marketCap}
 
 {-
    Load content from HTTP
