@@ -1,12 +1,25 @@
 module Scraper
 (
-     Company(..)
+     Ticker
+   , Company(..)
    , parse
 )
 where
 
 import Network.HTTP
 import Text.HTML.TagSoup
+
+type Ticker = String
+
+-- give the balance sheet url, the one to get assets and liabilites from
+balanceSheetURL :: Ticker -> String
+balanceSheetURL tick =
+   "http://stockreports.nasdaq.edgar-online.com/"++tick++".html"
+
+-- give the market url, the one to get 
+marketURL :: Ticker -> String
+marketURL tick =
+   "http://www.nasdaq.com/symbol/"++tick
 
 -- From all TagText objects, remove all white spaces
 dropWhitespace :: Tag String -> Tag String
@@ -23,7 +36,8 @@ data Company = Company {
       
       name             :: String,
       totalAssets      :: String,
-      totalLiabilities :: String
+      totalLiabilities :: String,
+      marketCap        :: String
 
    } deriving (Show,Read)
 
@@ -31,28 +45,34 @@ data Company = Company {
    Given a URL, load the content and look for
    some predefined datapoints
 
-   TODO: maybe give a list of datapoints
-         to look for
+   link is defined as the value from the balance sheet
+   (total assets - total liabilities)
+
+   markedLink is defined as the markets valuation of
+   the company i.e. the market cap
 -}
-parse :: String -> IO Company
-parse link =
+parse :: Ticker -> IO Company
+parse ticker =
       -- get the ticker from the url 
-   do let ticker = reverse $ takeWhile (\y->y/='/') 
-                             (tail $ dropWhile (\x->x/='.') (reverse link))
-      http <- simpleHTTP (getRequest link) >>= getResponseBody
-      let tags = parseTags http
-          reducedLs = dropEmpty (map dropWhitespace tags)
+   do let link       = balanceSheetURL ticker
+          marketLink = marketURL ticker
+      reducedLs   <- getFromHTTP link
       totalAssets <- getTotalAssets reducedLs
       totalLiab   <- getTotalLiabilities reducedLs
+      marketCap   <- getMarketCap marketLink
       return Company{name             = ticker,
                      totalAssets      = totalAssets,
-                     totalLiabilities = totalLiab}
+                     totalLiabilities = totalLiab,
+                     marketCap        = marketCap}
 
 {-
-   Get the name
+   Load content from HTTP
 -}
-getCompanyName :: [Tag String] -> IO String
-getCompanyName t = undefined
+getFromHTTP :: String -> IO [Tag String]
+getFromHTTP link =
+   do http <- simpleHTTP (getRequest link) >>= getResponseBody
+      let tags = parseTags http
+      return $ dropEmpty (map dropWhitespace tags)
 
 {-
    From a list of tags, find the total
@@ -82,3 +102,10 @@ getData tags key index =
    do let fTags              = dropWhile (~/= (TagText key)) tags
       let (TagText toReturn) = fTags !! index
       return toReturn
+
+{-
+   Get the market cap from another page than the other
+   data is fetched from
+-}
+getMarketCap :: String -> IO String
+getMarketCap li = getFromHTTP li >>= (\x->getData x "Market cap" 13)

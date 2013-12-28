@@ -10,9 +10,6 @@ main =
    do loadCompanyList ["mdca","msft"]
       putStrLn "----exiting----"
 
-edgarLink :: String
-edgarLink = "http://stockreports.nasdaq.edgar-online.com/"
-
 printCompany :: IO Company -> IO ()
 printCompany comp =
    do info <- comp
@@ -20,8 +17,7 @@ printCompany comp =
       putStrLn $ "name: " ++ (name info)
       putStrLn $ "total assets: " ++ show (totalAssets info)
       putStrLn $ "total liabilities: " ++ show (totalLiabilities info)
+      putStrLn $ "market cap: " ++ show (marketCap info)
 
 loadCompanyList :: [String] -> IO ()
-loadCompanyList ls =
-   do let ps = [parse (edgarLink++x++".html")|x<-ls]
-      forM_ ps printCompany
+loadCompanyList ls = forM_ [parse x|x<-ls] printCompany
