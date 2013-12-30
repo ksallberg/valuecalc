@@ -29,7 +29,7 @@ calcAndPrint :: IO (Either String Company) -> IO ()
 calcAndPrint input =
    do comp <- input
       case comp of
-         Left error -> putStrLn $ "Error parsing; " ++ error
+         Left error -> putStr ""
          Right info -> do
             let undervalued = isUnderValued (totalAssets info)
                                             (totalLiabilities info)
@@ -37,14 +37,13 @@ calcAndPrint input =
                 difference  = getDiff (totalAssets info)
                                       (totalLiabilities info)
                                       (marketCap info)
-            putStrLn "_____________"
+            putStrLn ""
             putStr $ "name: "                ++ (name info)
             putStr $ ", total assets: "      ++ show (totalAssets info)
             putStr $ ", total liabilities: " ++ show (totalLiabilities info)
             putStr $ ", market cap: "   ++ show (marketCap info)
-            putStrLn "" -- new line
-            putStrLn $ "undervalued: "  ++ show (undervalued) ++
-                       ", difference: " ++ show (difference)
+            putStr $ ", undervalued: "  ++ show (undervalued) ++
+                     ", difference: " ++ show (difference)
 
 {-
    For a list of given tickers, load the wanted data
