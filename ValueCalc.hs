@@ -6,6 +6,7 @@ import Scraper
 import Calculations
 import Nasdaq
 import Control.Monad
+import Control.Monad.Error
 import Data.Either
 
 {-
@@ -13,9 +14,9 @@ import Data.Either
    and perform the calculations!
 -}
 main :: IO ()
-main =
-   do loadCompanyList nasdaqList
-      putStrLn "----no more stocks in the list----"
+main = do loadCompanyList nasdaqList
+          putStrLn ""
+          putStrLn "----no more stocks in the list----"
 
 {-
    Determine if the company is undervalued,
@@ -25,29 +26,31 @@ main =
 
    Using Either to wrap the content.
 -}
-calcAndPrint :: IO (Either String Company) -> IO ()
-calcAndPrint input =
-   do comp <- input
-      case comp of
-         Left error -> putStr ""
-         Right info -> do
-            let undervalued = isUnderValued (totalAssets info)
-                                            (totalLiabilities info)
-                                            (marketCap info)
-                difference  = getDiff (totalAssets info)
-                                      (totalLiabilities info)
-                                      (marketCap info)
-            putStrLn ""
-            putStr $ "name: "                ++ (name info)
-            putStr $ ", total assets: "      ++ show (totalAssets info)
-            putStr $ ", total liabilities: " ++ show (totalLiabilities info)
-            putStr $ ", market cap: "   ++ show (marketCap info)
-            putStr $ ", undervalued: "  ++ show (undervalued) ++
-                     ", difference: " ++ show (difference)
+calcAndPrint :: Either String Company -> IO ()
+calcAndPrint input = do
+   case input of
+      Left error -> putStr ""
+      Right info -> do
+         let undervalued = isUnderValued (totalAssets info)
+                                         (totalLiabilities info)
+                                         (marketCap info)
+             difference  = getDiff (totalAssets info)
+                                   (totalLiabilities info)
+                                   (marketCap info)
+         putStrLn ""
+         putStr $ "name: "                ++ (name info)
+         putStr $ ", total assets: "      ++ show (totalAssets info)
+         putStr $ ", total liabilities: " ++ show (totalLiabilities info)
+         putStr $ ", market cap: "   ++ show (marketCap info)
+         putStr $ ", undervalued: "  ++ show (undervalued) ++
+                  ", difference: "   ++ show (difference)
 
 {-
    For a list of given tickers, load the wanted data
    from some data sources, and give them to calcAndPrint
 -}
 loadCompanyList :: [Ticker] -> IO ()
-loadCompanyList ls = forM_ [parse x|x<-ls] calcAndPrint
+loadCompanyList [] = return ()
+loadCompanyList (x:xs) = do res <- runErrorT (parse x)
+                            calcAndPrint res
+                            loadCompanyList xs

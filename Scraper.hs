@@ -9,9 +9,23 @@ where
 import Data.Either
 import Network.HTTP
 import Text.HTML.TagSoup
+import Control.Monad.Error
 
-type Ticker    = String
-type SafeParse = (Either String String)
+type Ticker = String
+type ErrorM = String           -- Error Message
+type ErrorW = ErrorT ErrorM IO -- Error Wrapper
+
+-- Error message for mcap
+mcapError :: ErrorM
+mcapError = "Error reading the market cap."
+
+-- Error message for total assets
+asstError :: ErrorM
+asstError = "Error reading total assets."
+
+-- Error message for liabilities
+liabError :: ErrorM
+liabError = "Error reading total liabilities."
 
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String
@@ -20,8 +34,7 @@ balanceSheetURL tick =
 
 -- give the market url, the one to get 
 marketURL :: Ticker -> String
-marketURL tick =
-   "http://www.nasdaq.com/symbol/"++tick
+marketURL tick = "http://www.nasdaq.com/symbol/"++tick
 
 -- From all TagText objects, remove all white spaces
 dropWhitespace :: Tag String -> Tag String
@@ -66,50 +79,40 @@ data Company = Company {
    markedLink is defined as the markets valuation of
    the company i.e. the market cap
 -}
-parse :: Ticker -> IO (Either String Company)
+parse :: Ticker -> ErrorW Company
 parse ticker =
    -- get the ticker from the url 
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker
-      reducedLs <- getFromHTTP link
-      assets    <- getTotalAssets reducedLs
-      case assets of
-         Left err1  -> return (Left (ticker++"Couldn't find total assets"++err1))
-         Right totalAssets ->
-           do liab <- getTotalLiabilities reducedLs
-              case liab of
-                 Left err2  -> return (Left (ticker++"Coulnd't find total liabilites"++err2))
-                 Right totalLiab -> do
-                    mC <- getMarketCap marketLink
-                    case mC of
-                       Left err3 -> return (Left (ticker++"Couldn't find market cap"++err3))
-                       Right marketCap -> do
-                          return $ Right Company{name             = ticker,
-                                                 totalAssets      = fromMilDol  totalAssets,
-                                                 totalLiabilities = fromMilDol  totalLiab,
-                                                 marketCap        = fromDolSign marketCap}
+      reducedLs   <- getFromHTTP link
+      totalAssets <- getTotalAssets reducedLs
+      totalLiab   <- getTotalLiabilities reducedLs
+      marketCap   <- getMarketCap marketLink
+      return $ Company{name             = ticker,
+                       totalAssets      = fromMilDol  totalAssets,
+                       totalLiabilities = fromMilDol  totalLiab,
+                       marketCap        = fromDolSign marketCap}
 
 {-
    Load content from HTTP
 -}
-getFromHTTP :: String -> IO [Tag String]
-getFromHTTP link =
-   do http <- simpleHTTP (getRequest link) >>= getResponseBody
-      let tags = parseTags http
-      return $ dropEmpty (map dropWhitespace tags)
-
+getFromHTTP :: String -> ErrorW [Tag String]
+getFromHTTP link = do
+   http <- liftIO $ simpleHTTP (getRequest link) >>= getResponseBody
+   let tags = parseTags http
+   return $ dropEmpty (map dropWhitespace tags)
 {-
    From a list of tags, find the total
    assets value for the given company
 -}
-getTotalAssets :: [Tag String] -> IO SafeParse
-getTotalAssets t = getData t "Total Assets" 5
+getTotalAssets :: [Tag String] -> ErrorW String
+getTotalAssets t = getData t "Total Assets" 5 asstError
 
 {-
    Parse total liabilities
 -}
-getTotalLiabilities :: [Tag String] -> IO SafeParse
-getTotalLiabilities t = getData t "Total Liabilities" 5
+getTotalLiabilities :: [Tag String] -> ErrorW String
+getTotalLiabilities t = getData t "Total Liabilities" 5 liabError
 
 {-
    Generalized function for finding the financial data
@@ -121,17 +124,18 @@ getTotalLiabilities t = getData t "Total Liabilities" 5
 
    fTags = followingTags
 -}
-getData :: [Tag String] -> String -> Int -> IO SafeParse
-getData tags key index =
-   do let fTags              = dropWhile (~/= (TagText key)) tags
+getData :: [Tag String] -> String -> Int -> ErrorM -> ErrorW String
+getData tags key index err =
+   do let fTags = dropWhile (~/= (TagText key)) tags
       case (length fTags) <= index of
          False -> do let (TagText toReturn) = fTags !! index
-                     return (Right toReturn)
-         True  -> return (Left "failed parsing")
+                     return toReturn
+         True  -> throwError err
 
 {-
    Get the market cap from another page than the other
    data is fetched from
 -}
-getMarketCap :: String -> IO SafeParse
-getMarketCap li = getFromHTTP li >>= (\x->getData x "Market cap" 13)
+getMarketCap :: String -> ErrorW String
+getMarketCap link =
+   getFromHTTP link >>= (\x->getData x "Market cap" 13 mcapError)
