@@ -9,22 +9,10 @@ where
 import Data.Either
 import Scraping
 
--- Error message for mcap
-mcapError :: ErrorM
-mcapError = "Error reading the market cap."
-
--- Error message for total assets
-asstError :: ErrorM
-asstError = "Error reading total assets."
-
--- Error message for liabilities
-liabError :: ErrorM
-liabError = "Error reading total liabilities."
-
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String
 balanceSheetURL tick =
-   "http://stockreports.nasdaq.edgar-online.com/"++tick++".html"
+   concat ["http://stockreports.nasdaq.edgar-online.com/",tick,".html"]
 
 -- give the market url, the one to get 
 marketURL :: Ticker -> String
@@ -73,14 +61,22 @@ parse ticker =
    assets value for the given company
 -}
 getTotalAssets :: [Tag String] -> ErrorW String
-getTotalAssets t = getData t "Total Assets" 5 asstError
+getTotalAssets t = getData
+                      t
+                      "Total Assets"
+                      5
+                      "Error reading total assets"
 
 {-
    NASDAQ specific:
    Parse total liabilities
 -}
 getTotalLiabilities :: [Tag String] -> ErrorW String
-getTotalLiabilities t = getData t "Total Liabilities" 5 liabError
+getTotalLiabilities t = getData
+                           t 
+                           "Total Liabilities"
+                           5 
+                           "Error reading total liabilities"
 
 {-
    NASDAQ specific:
@@ -89,4 +85,9 @@ getTotalLiabilities t = getData t "Total Liabilities" 5 liabError
 -}
 getMarketCap :: String -> ErrorW String
 getMarketCap link =
-   getFromHTTP link >>= (\x->getData x "Market cap" 13 mcapError)
+   getFromHTTP link >>= 
+      (\x->getData
+              x
+              "Market cap"
+              13
+              "Error reading market cap")
