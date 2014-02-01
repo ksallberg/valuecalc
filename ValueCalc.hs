@@ -14,9 +14,7 @@ import Data.Either
    and perform the calculations!
 -}
 main :: IO ()
-main = loadCompanyList nasdaqList >>
-       putStrLn "" >>
-       putStrLn "----no more stocks in the list----"
+main = loadCompanyList nasdaqList >> putStrLn "" >> putStrLn "-end-"
 
 {-
    Determine if the company is undervalued,
@@ -51,8 +49,5 @@ calcAndPrint input = do
    from some data sources, and give them to calcAndPrint
 -}
 loadCompanyList :: [Ticker] -> IO ()
-loadCompanyList [] = return ()
-loadCompanyList (x:xs) =
-   do res <- runErrorT (parse x)
-      calcAndPrint res
-      loadCompanyList xs
+loadCompanyList xs =
+   forM_ xs $ \x->runErrorT (parse x) >>= \res->calcAndPrint res
