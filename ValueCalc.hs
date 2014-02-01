@@ -2,9 +2,9 @@ module ValueCalc (
    main
 ) where
 
-import Scraper
+import NasdaqScraper
 import Calculations
-import Nasdaq
+import NasdaqList
 import Control.Monad
 import Control.Monad.Error
 import Data.Either

@@ -1,4 +1,4 @@
-module Scraper
+module NasdaqScraper
 (
      Ticker
    , Company(..)
@@ -7,13 +7,7 @@ module Scraper
 where
 
 import Data.Either
-import Network.HTTP
-import Text.HTML.TagSoup
-import Control.Monad.Error
-
-type Ticker = String
-type ErrorM = String           -- Error Message
-type ErrorW = ErrorT ErrorM IO -- Error Wrapper
+import Scraping
 
 -- Error message for mcap
 mcapError :: ErrorM
@@ -36,17 +30,6 @@ balanceSheetURL tick =
 marketURL :: Ticker -> String
 marketURL tick = "http://www.nasdaq.com/symbol/"++tick
 
--- From all TagText objects, remove all white spaces
-dropWhitespace :: Tag String -> Tag String
-dropWhitespace (TagText str) = (TagText (unwords (words str)))
-dropWhitespace x             = x
-
--- Drop all TagText objects, which are only wrapping an empty string
-dropEmpty :: [Tag String] -> [Tag String]
-dropEmpty []                = []
-dropEmpty ((TagText ""):xs) = [] ++ dropEmpty xs
-dropEmpty (x:xs)            = x : dropEmpty xs
-
 -- Convert from million dollar string
 -- to dollar int
 fromMilDol :: String -> Integer
@@ -59,15 +42,6 @@ fromDolSign :: String -> Integer
 fromDolSign "$" = 0 -- sometimes there's no value in the table,
                     -- then don't read it :)
 fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Integer
-
-data Company = Company {
-      
-      name             :: String,
-      totalAssets      :: Integer,
-      totalLiabilities :: Integer,
-      marketCap        :: Integer
-
-   } deriving (Show,Read)
 
 {-
    Given a URL, load the content and look for
@@ -94,14 +68,7 @@ parse ticker =
                        marketCap        = fromDolSign marketCap}
 
 {-
-   Load content from HTTP
--}
-getFromHTTP :: String -> ErrorW [Tag String]
-getFromHTTP link = do
-   http <- liftIO $ simpleHTTP (getRequest link) >>= getResponseBody
-   let tags = parseTags http
-   return $ dropEmpty (map dropWhitespace tags)
-{-
+   NASDAQ specific:
    From a list of tags, find the total
    assets value for the given company
 -}
@@ -109,30 +76,14 @@ getTotalAssets :: [Tag String] -> ErrorW String
 getTotalAssets t = getData t "Total Assets" 5 asstError
 
 {-
+   NASDAQ specific:
    Parse total liabilities
 -}
 getTotalLiabilities :: [Tag String] -> ErrorW String
 getTotalLiabilities t = getData t "Total Liabilities" 5 liabError
 
 {-
-   Generalized function for finding the financial data
-   searched for
-
-   tags  = all tags to search in
-   key   = the string (header/description) to search for
-   index = the following tag that holds what we're looking for
-
-   fTags = followingTags
--}
-getData :: [Tag String] -> String -> Int -> ErrorM -> ErrorW String
-getData tags key index err =
-   do let fTags = dropWhile (~/= (TagText key)) tags
-      case (length fTags) <= index of
-         False -> do let (TagText toReturn) = fTags !! index
-                     return toReturn
-         True  -> throwError err
-
-{-
+   NASDAQ specific:
    Get the market cap from another page than the other
    data is fetched from
 -}
