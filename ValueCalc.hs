@@ -2,9 +2,11 @@ module ValueCalc (
    main
 ) where
 
-import NasdaqScraper
+import OMXScraper
+-- import NasdaqScraper
 import Calculations
 import NasdaqList
+import OMXList
 import Control.Monad
 import Control.Monad.Error
 import Data.Either
@@ -14,7 +16,7 @@ import Data.Either
    and perform the calculations!
 -}
 main :: IO ()
-main = loadCompanyList nasdaqList >> putStrLn "" >> putStrLn "-end-"
+main = loadCompanyList omxList >> putStrLn "" >> putStrLn "-end-"
 
 {-
    Determine if the company is undervalued,
