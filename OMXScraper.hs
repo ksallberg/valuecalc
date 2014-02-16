@@ -6,8 +6,12 @@ module OMXScraper
 )
 where
 
+import Control.Monad
+import Control.Monad.Error
 import Data.Either
 import Scraping
+import Text.HTML.TagSoup
+import Network.HTTP
 
 -- Error message for mcap
 mcapError :: ErrorM
@@ -26,9 +30,21 @@ balanceSheetURL :: Ticker -> String
 balanceSheetURL tick
    = "http://se.investing.com/equities/" ++ tick ++ "-balance-sheet"
 
+toMilSek :: String -> Integer
+toMilSek inp = read (inp ++ (take 6 (repeat '0'))) :: Integer
+
+toBilSek :: String -> Integer
+toBilSek inp = read (fromCommanotation inp) :: Integer
+
+fromCommanotation :: String -> String
+fromCommanotation inp =
+   takeWhile (isnt ',') inp ++ follow ++ take (9-length follow) (repeat '0')
+      where follow = tail $ takeWhile (isnt 'B') (dropWhile (isnt ',') inp)
+            isnt x = (not . (==) x)
+
 -- give the market url, the one to get 
 marketURL :: Ticker -> String
-marketURL = balanceSheetURL -- for now use the same as the balance sheet
+marketURL tick = "http://se.investing.com/equities/" ++ tick
 
 {-
    Given a URL, load the content and look for
@@ -45,17 +61,14 @@ parse ticker =
    -- get the ticker from the url 
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker
-      liftIO (putStrLn link)
       reducedLs   <- getFromHTTP link
---      liftIO $ putStrLn (show (take 10 reducedLs))
       totalAssets <- getTotalAssets reducedLs
-      liftIO $ putStrLn (totalAssets)
       totalLiab   <- getTotalLiabilities reducedLs
       marketCap   <- getMarketCap marketLink
       return $ Company{name             = ticker,
-                       totalAssets      = (read totalAssets) :: Integer,
-                       totalLiabilities = (read totalLiab)   :: Integer,
-                       marketCap        = (read marketCap)   :: Integer}
+                       totalAssets      = toMilSek totalAssets,
+                       totalLiabilities = toMilSek totalLiab,
+                       marketCap        = toBilSek marketCap}
 
 {-
    NASDAQ specific:
@@ -63,14 +76,14 @@ parse ticker =
    assets value for the given company
 -}
 getTotalAssets :: [Tag String] -> ErrorW String
-getTotalAssets t = getData t "Volvo" 2 asstError
+getTotalAssets t = getData t "Totala tillg\195\165ngar" 6 asstError
 
 {-
    NASDAQ specific:
    Parse total liabilities
 -}
 getTotalLiabilities :: [Tag String] -> ErrorW String
-getTotalLiabilities t = getData t "Summa skulder" 5 liabError
+getTotalLiabilities t = getData t "Summa skulder" 6 liabError
 
 {-
    NASDAQ specific:
@@ -79,4 +92,4 @@ getTotalLiabilities t = getData t "Summa skulder" 5 liabError
 -}
 getMarketCap :: String -> ErrorW String
 getMarketCap link =
-   getFromHTTP link >>= (\x->getData x "Market cap" 13 mcapError)
+   getFromHTTP link >>= (\x->getData x "B\195\182rsv\195\164rde" 3 mcapError)
