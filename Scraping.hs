@@ -40,7 +40,7 @@ data Company = Company {
       totalLiabilities :: Integer,
       marketCap        :: Integer
 
-   } deriving (Show,Read)
+   } deriving (Show,Read,Eq)
 
 -- From all TagText objects, remove all white spaces
 dropWhitespace :: Tag String -> Tag String
