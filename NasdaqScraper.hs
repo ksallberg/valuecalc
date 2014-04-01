@@ -3,6 +3,8 @@ module NasdaqScraper
      Ticker
    , Company(..)
    , parse
+   , fromMilDol
+   , fromDolSign
 )
 where
 

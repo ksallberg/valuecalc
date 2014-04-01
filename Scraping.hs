@@ -16,7 +16,9 @@ module Scraping
    Company (..),
    liftIO,
    parseTags,
-   getFromHTTP
+   getFromHTTP,
+   dropWhitespace,
+   dropEmpty
 )
 
 where
@@ -44,8 +46,10 @@ data Company = Company {
 
 -- From all TagText objects, remove all white spaces
 dropWhitespace :: Tag String -> Tag String
-dropWhitespace (TagText str) = (TagText (unwords (words str)))
+dropWhitespace (TagText str) = TagText $ (concat . words) str
 dropWhitespace x             = x
+
+-- blackbrane
 
 -- Drop all TagText objects, which are only wrapping an empty string
 dropEmpty :: [Tag String] -> [Tag String]

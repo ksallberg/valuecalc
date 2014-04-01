@@ -3,6 +3,9 @@ module OMXScraper
      Ticker
    , Company(..)
    , parse
+   , toMilSek
+   , toBilSek
+   , fromCommanotation
 )
 where
 
