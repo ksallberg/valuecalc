@@ -29,8 +29,7 @@ fromMilDol str =
 
 -- Convert from dollar sign and commas to just an Int
 fromDolSign :: String -> Integer
-fromDolSign "$" = 0 -- sometimes there's no value in the table,
-                    -- then don't read it :)
+fromDolSign "$" = 0 -- if there's no value in the table, then don't read
 fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Integer
 
 {-

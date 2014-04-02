@@ -7,17 +7,16 @@ import Calculations  (getDiff, isUnderValued)
 
 -- running test suite, TODO: better way of defining a quickCheck test suite?
 main :: IO ()
-main = do
-   quickCheck prop_unit
-   quickCheck prop_whiteSpacesDropped
-   quickCheck prop_dropEmpty
-   quickCheck prop_getDiff
-   quickCheck prop_isUnderValued
-   quickCheck prop_fromDolSign
-   quickCheck prop_fromMilDol
-   quickCheck prop_toMilSek
-   quickCheck prop_toBilSek
-   quickCheck prop_fromCommanotation 
+main = do quickCheck prop_unit
+          quickCheck prop_whiteSpacesDropped
+          quickCheck prop_dropEmpty
+          quickCheck prop_getDiff
+          quickCheck prop_isUnderValued
+          quickCheck $ forAll genFromDolSign       prop_fromDolSign
+          quickCheck $ forAll genFromMilDol        prop_fromMilDol
+          quickCheck $ forAll genToMilSek          prop_toMilSek
+          quickCheck $ forAll genToBilSek          prop_toBilSek
+          quickCheck $ forAll genFromCommanotation prop_fromCommanotation
 
 -- Telling quickcheck how to generate a company.
 instance Arbitrary Company where
@@ -27,15 +26,45 @@ instance Arbitrary Company where
                   return $ Company "Random Company" int1 int2 int3
                where randInt = elements [-9999..9999] :: Gen Integer
 
--- @how: quickCheck prop_unit
--- Just a unit function doing nothing.
--- TODO: What can I do to test this?
+{-
+   Generators for specific kinds of strings needed
+   for different tests. Some of these functions are
+   only intended to work on a certain type of input
+   strings which are gathered by scraping.
+
+   TODO: Generate more useful strings
+-}
+genFromDolSign :: Gen String
+genFromDolSign = do a <- elements ["$ 20","$ 50"]
+                    return a
+
+genFromMilDol :: Gen String
+genFromMilDol = do a <- elements ["10,23.233","1,2,4.9"]
+                   return a
+
+genToMilSek :: Gen String
+genToMilSek = do a <- elements ["1","2"]
+                 return a
+
+genToBilSek :: Gen String
+genToBilSek = do a <- elements ["1","3"]
+                 return a
+
+genFromCommanotation :: Gen String
+genFromCommanotation = do a <- elements ["8","9"]
+                          return a
+
+{- @how: quickCheck prop_unit
+   Just a unit function doing nothing.
+   TODO: What can I do to test this?
+-}
 prop_unit :: [Company] -> Bool
 prop_unit ls = ls == ls
 
--- in case it's TagText then we want to make sure a doesn't have whitespaces anymore
--- in case of a Tag (that's not TagText) nothing should be changed in this case
--- using ws to not use 
+{- in case it's TagText then we want to make sure a doesn't have whitespaces anymore
+   in case of a Tag (that's not TagText) nothing should be changed in this case
+   using ws to not use 
+-}
 prop_whiteSpacesDropped :: String -> Bool
 prop_whiteSpacesDropped "" = True
 prop_whiteSpacesDropped x  =
@@ -48,18 +77,19 @@ prop_dropEmpty :: [String] -> Bool
 prop_dropEmpty []  = True
 prop_dropEmpty inp =
    dropEmpty tagged == [x|x<-tagged,x/=(TagText "")]
-      where tagged = (map (\x->TagText x) inp)
+      where tagged = map (\x->TagText x) inp
 
--- TODO: NasdaqScraper
--- TODO: This needs to generate the appropriate kind of strings
+-- when fromDolSign has been run, there should be no ',' in the result
+-- if a lonely $ is sent in, then the result should be 0
 prop_fromDolSign :: String -> Bool
-prop_fromDolSign str = True
+prop_fromDolSign "$" = (show $ fromDolSign "$") == "0"
+prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
+   where parsed = show $ fromDolSign str
 
--- TODO: Same TODO as above
+-- TODO: create test
 prop_fromMilDol :: String -> Bool
 prop_fromMilDol str = True
 
--- TODO OMXScraper
 -- TODO: Same TODO as above
 prop_toMilSek :: String -> Bool
 prop_toMilSek str = True
@@ -73,16 +103,16 @@ prop_fromCommanotation :: String -> Bool
 prop_fromCommanotation str = True
 
 -- Calculations
--- the valuation calculations gives back positive or negative correctly (right side of 0)
+-- the valuation calculations gives back positive or 
+-- negative correctly (right side of 0)
 prop_getDiff :: Integer -> Integer -> Integer -> Bool
-prop_getDiff asst lia mc | asst-lia >  mc = getDiff asst lia mc >  0 -- undervalued
-                           && isUnderValued asst lia mc
-                         | asst-lia == mc = getDiff asst lia mc == 0 -- perfect
-                           && not (isUnderValued asst lia mc)
-                         | asst-lia <  mc = getDiff asst lia mc <  0 -- overvalued
-                           && not (isUnderValued asst lia mc)
+prop_getDiff as lia mc
+   | as-lia >  mc = getDiff as lia mc >  0 && isUnderValued as lia mc       --under
+   | as-lia == mc = getDiff as lia mc == 0 && not (isUnderValued as lia mc) --even
+   | as-lia <  mc = getDiff as lia mc <  0 && not (isUnderValued as lia mc) --over
 
 -- just test if undervalued and overvalued works
 prop_isUnderValued :: Integer -> Integer -> Integer -> Bool
-prop_isUnderValued asst lia mc | asst-lia > mc = isUnderValued asst lia mc == True
-                               | otherwise     = isUnderValued asst lia mc == False
+prop_isUnderValued as lia mc
+   | as-lia > mc = isUnderValued as lia mc == True
+   | otherwise   = isUnderValued as lia mc == False
