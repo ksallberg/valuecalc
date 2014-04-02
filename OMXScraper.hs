@@ -41,8 +41,8 @@ toBilSek inp = read (fromCommanotation inp) :: Integer
 
 fromCommanotation :: String -> String
 fromCommanotation inp =
-   takeWhile ((/=) ',') inp ++ follow ++ take (9-length follow) (repeat '0')
-      where follow = tail $ takeWhile ((/=) 'B') (dropWhile ((/=) ',') inp)
+   takeWhile (/=',') inp ++ follow ++ take (9-length follow) (repeat '0')
+      where follow = tail $ takeWhile (/='B') $ dropWhile (/=',') inp
 
 -- give the market url, the one to get 
 marketURL :: Ticker -> String

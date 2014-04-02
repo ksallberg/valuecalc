@@ -24,7 +24,7 @@ marketURL tick = "http://www.nasdaq.com/symbol/"++tick
 -- to dollar int
 fromMilDol :: String -> Integer
 fromMilDol str =
-   read ([x|x<-takeWhile (\x->x/='.') str,x/=',']
+   read ([x|x<-takeWhile (/='.') str,x/=',']
          ++(take 6 (repeat '0'))) :: Integer
 
 -- Convert from dollar sign and commas to just an Int
