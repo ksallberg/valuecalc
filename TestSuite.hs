@@ -39,8 +39,7 @@ genFromDolSign = do a <- elements ["$ 20","$ 50"]
                     return a
 
 genFromMilDol :: Gen String
-genFromMilDol = do a <- elements ["10,23.233","1,2,4.9"]
-                   return a
+genFromMilDol = listOf $ elements "0123456789.,"
 
 genToMilSek :: Gen String
 genToMilSek = do a <- elements ["1","2"]
@@ -84,11 +83,18 @@ prop_dropEmpty inp =
 prop_fromDolSign :: String -> Bool
 prop_fromDolSign "$" = (show $ fromDolSign "$") == "0"
 prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
-   where parsed = show $ fromDolSign str
+   where parsed      = show $ fromDolSign str
 
--- TODO: create test
+-- no commas, no dot, right amount of 0's
 prop_fromMilDol :: String -> Bool
-prop_fromMilDol str = True
+prop_fromMilDol str =
+   case length readval > 0 of
+      True  -> (length parsed == length beforeDot + 6 &&
+                parsed == beforeDot ++ "000000")
+      False -> True -- ok quickcheck generated a faulty number... ignore
+   where beforeDot  = dropWhile (=='0') $ filter (/=',') $ takeWhile (/='.') str
+         parsed     = show $ fromMilDol $ (show . fst) (head readval)
+         readval    = reads str :: [(Double,String)]
 
 -- TODO: Same TODO as above
 prop_toMilSek :: String -> Bool

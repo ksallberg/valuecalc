@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternGuards #-}
+
 module NasdaqScraper
 (
      Ticker
@@ -21,11 +23,33 @@ marketURL :: Ticker -> String
 marketURL tick = "http://www.nasdaq.com/symbol/"++tick
 
 -- Convert from million dollar string
--- to dollar int
+-- to dollar int (million dollars -> dollars)
+{-
+   a string represented number that is expressing million dollars.
+
+   take all chars before . and remove , from this = beforeCommaNoDots
+   
+   after that just add six 0 to represent it in dollars
+-}
+{-fromMilDol :: String -> Integer
+fromMilDol str 
+   | take 2 str == "0." = (read (t $ drop 2 str) :: Integer) * 100000
+   | otherwise =
+      case length (t str) of
+         0 -> 0
+         _ -> (read (t str) :: Integer)*1000000
+      where t inp = dropWhile ((flip elem) ".,")
+                              [x|x<-takeWhile (/='.') inp,x/=',']
+-}
+
 fromMilDol :: String -> Integer
-fromMilDol str =
-   read ([x|x<-takeWhile (/='.') str,x/=',']
-         ++(take 6 (repeat '0'))) :: Integer
+fromMilDol ""  = 0
+fromMilDol str | head str == '.' = fromMilDol ("0"++str)
+fromMilDol str | length [x|x<-str, x /= ',' && x /= '.'] == 0 = 0
+fromMilDol str = round d
+   where d = read ((takeWhile p $ filter n str)++"000000") :: Double
+         n = (/=',')
+         p = (/='.')
 
 -- Convert from dollar sign and commas to just an Int
 fromDolSign :: String -> Integer
