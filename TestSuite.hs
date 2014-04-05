@@ -32,28 +32,26 @@ instance Arbitrary Company where
    only intended to work on a certain type of input
    strings which are gathered by scraping.
 
-   TODO: Generate more useful strings
+   "$ " is added before all instances of this string,
+   but this is not stated here because of optimization
 -}
 genFromDolSign :: Gen String
-genFromDolSign = do a <- elements ["$ 20","$ 50"]
-                    return a
+genFromDolSign = suchThat (listOf (elements "0123456789")) okay
+   where okay str = length str > 0
 
 genFromMilDol :: Gen String
 genFromMilDol = suchThat (listOf (elements "0123456789.,")) okayString
-   where okayString str = (beforeDot str) /= [] && (length $ filter (=='.') str) <= 1 && 
+   where okayString str = (beforeDot str) /= "" && (length $ filter (=='.') str) <= 1 && 
                           str /= "" && head str /= '.' && head str /= ','
 
 genToMilSek :: Gen String
-genToMilSek = do a <- elements ["1","2"]
-                 return a
+genToMilSek = elements ["1","2"]
 
 genToBilSek :: Gen String
-genToBilSek = do a <- elements ["1","3"]
-                 return a
+genToBilSek = elements ["1","3"]
 
 genFromCommanotation :: Gen String
-genFromCommanotation = do a <- elements ["8","9"]
-                          return a
+genFromCommanotation = elements ["8","9"]
 
 {- @how: quickCheck prop_unit
    Just a unit function doing nothing.
@@ -85,7 +83,7 @@ prop_dropEmpty inp =
 prop_fromDolSign :: String -> Bool
 prop_fromDolSign "$" = (show $ fromDolSign "$") == "0"
 prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
-   where parsed      = show $ fromDolSign str
+   where parsed      = show $ fromDolSign ("$ 0" ++ str) -- optimizing, I want "$ 0" to be leading
 
 beforeDot :: String -> String
 beforeDot str = dropWhile (=='0') $ takeWhile (/='.') $ filter (/=',') str
