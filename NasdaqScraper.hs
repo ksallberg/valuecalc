@@ -79,7 +79,7 @@ parseNasdaq ticker =
 getTotalAssets :: [Tag String] -> ErrorW String
 getTotalAssets t = getData
                       t
-                      "Total Assets"
+                      "TotalAssets"
                       5
                       "Error reading total assets"
 
@@ -90,7 +90,7 @@ getTotalAssets t = getData
 getTotalLiabilities :: [Tag String] -> ErrorW String
 getTotalLiabilities t = getData
                            t 
-                           "Total Liabilities"
+                           "TotalLiabilities"
                            5 
                            "Error reading total liabilities"
 
@@ -104,6 +104,6 @@ getMarketCap link =
    getFromHTTP link >>= 
       (\x->getData
               x
-              "Market cap"
+              "Marketcap"
               13
               "Error reading market cap")

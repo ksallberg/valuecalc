@@ -73,22 +73,22 @@ parseOMX ticker =
                        marketCap        = toBilSek marketCap}
 
 {-
-   NASDAQ specific:
+   OMX specific:
    From a list of tags, find the total
    assets value for the given company
 -}
 getTotalAssets :: [Tag String] -> ErrorW String
-getTotalAssets t = getData t "Totala tillg\195\165ngar" 6 asstError
+getTotalAssets t = getData t "Totalatillg\195\165ngar" 6 asstError
 
 {-
-   NASDAQ specific:
+   OMX specific:
    Parse total liabilities
 -}
 getTotalLiabilities :: [Tag String] -> ErrorW String
-getTotalLiabilities t = getData t "Summa skulder" 6 liabError
+getTotalLiabilities t = getData t "Summaskulder" 6 liabError
 
 {-
-   NASDAQ specific:
+   OMX specific:
    Get the market cap from another page than the other
    data is fetched from
 -}

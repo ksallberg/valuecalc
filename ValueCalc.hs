@@ -17,8 +17,10 @@ import Data.Either
 -}
 main :: IO ()
 main = do loadCompanyList parseOMX    omxList
+          putStrLn ""
           putStrLn "-end of omx, now nasdaq-"
           loadCompanyList parseNasdaq nasdaqList
+          putStrLn ""
           putStrLn "-end-"
 
 {-
