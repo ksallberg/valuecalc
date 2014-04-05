@@ -39,7 +39,9 @@ genFromDolSign = do a <- elements ["$ 20","$ 50"]
                     return a
 
 genFromMilDol :: Gen String
-genFromMilDol = listOf $ elements "0123456789.,"
+genFromMilDol = suchThat (listOf (elements "0123456789.,")) okayString
+   where okayString str = (beforeDot str) /= [] && (length $ filter (=='.') str) <= 1 && 
+                          str /= "" && head str /= '.' && head str /= ','
 
 genToMilSek :: Gen String
 genToMilSek = do a <- elements ["1","2"]
@@ -85,16 +87,14 @@ prop_fromDolSign "$" = (show $ fromDolSign "$") == "0"
 prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
    where parsed      = show $ fromDolSign str
 
+beforeDot :: String -> String
+beforeDot str = dropWhile (=='0') $ takeWhile (/='.') $ filter (/=',') str
+
 -- no commas, no dot, right amount of 0's
 prop_fromMilDol :: String -> Bool
-prop_fromMilDol str =
-   case length readval > 0 of
-      True  -> (length parsed == length beforeDot + 6 &&
-                parsed == beforeDot ++ "000000")
-      False -> True -- ok quickcheck generated a faulty number... ignore
-   where beforeDot  = dropWhile (=='0') $ filter (/=',') $ takeWhile (/='.') str
-         parsed     = show $ fromMilDol $ (show . fst) (head readval)
-         readval    = reads str :: [(Double,String)]
+prop_fromMilDol ""  = True
+prop_fromMilDol "0" = True
+prop_fromMilDol str = fromMilDol str == (read (beforeDot str) :: Integer) * 1000000
 
 -- TODO: Same TODO as above
 prop_toMilSek :: String -> Bool

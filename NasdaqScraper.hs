@@ -44,10 +44,12 @@ fromMilDol str
 
 fromMilDol :: String -> Integer
 fromMilDol ""  = 0
+                 -- keeping this to make sure we can still handle
+                 -- . as the first input
 fromMilDol str | head str == '.' = fromMilDol ("0"++str)
 fromMilDol str | length [x|x<-str, x /= ',' && x /= '.'] == 0 = 0
-fromMilDol str = round d
-   where d = read ((takeWhile p $ filter n str)++"000000") :: Double
+fromMilDol str = d * 1000000
+   where d = read (takeWhile p $ filter n str) :: Integer
          n = (/=',')
          p = (/='.')
 
