@@ -7,7 +7,6 @@ module NasdaqScraper
    , parseNasdaq
    , fromMilDol
    , fromDolSign
-   , ErrorW
 )
 where
 

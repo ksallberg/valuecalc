@@ -2,6 +2,7 @@ module ValueCalc (
    main
 ) where
 
+import Scraping
 import OMXScraper
 import NasdaqScraper
 import Calculations
@@ -31,7 +32,7 @@ main = do loadCompanyList parseOMX    omxList
 calcAndPrint :: Either String Company -> IO ()
 calcAndPrint input = do
    case input of
-      Left error -> putStr ""
+      Left error -> putStr (show error)
       Right info -> do
          putStrLn ""
          putStr $ "name: "                ++ (name info)
