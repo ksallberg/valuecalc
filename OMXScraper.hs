@@ -2,7 +2,7 @@ module OMXScraper
 (
      Ticker
    , Company(..)
-   , parse
+   , parseOMX
    , toMilSek
    , toBilSek
    , fromCommanotation
@@ -58,8 +58,8 @@ marketURL tick = "http://se.investing.com/equities/" ++ tick
    markedLink is defined as the markets valuation of
    the company i.e. the market cap
 -}
-parse :: Ticker -> ErrorW Company
-parse ticker =
+parseOMX :: Ticker -> ErrorW Company
+parseOMX ticker =
    -- get the ticker from the url 
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker

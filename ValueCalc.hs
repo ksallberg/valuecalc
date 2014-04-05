@@ -3,7 +3,7 @@ module ValueCalc (
 ) where
 
 import OMXScraper
--- import NasdaqScraper
+import NasdaqScraper
 import Calculations
 import NasdaqList
 import OMXList
@@ -12,11 +12,13 @@ import Control.Monad.Error
 import Data.Either
 
 {-
-   Define a list of stocks to examine
-   and perform the calculations!
+   For now, 
 -}
 main :: IO ()
-main = loadCompanyList omxList >> putStrLn "" >> putStrLn "-end-"
+main = do loadCompanyList parseOMX    omxList
+          putStrLn "-end of omx, now nasdaq-"
+          loadCompanyList parseNasdaq nasdaqList
+          putStrLn "-end-"
 
 {-
    Determine if the company is undervalued,
@@ -50,6 +52,6 @@ calcAndPrint input = do
    For a list of given tickers, load the wanted data
    from some data sources, and give them to calcAndPrint
 -}
-loadCompanyList :: [Ticker] -> IO ()
-loadCompanyList xs =
-   forM_ xs $ \x->runErrorT (parse x) >>= \res->calcAndPrint res
+loadCompanyList :: (Ticker -> ErrorW Company) -> [Ticker] -> IO ()
+loadCompanyList scraper xs =
+   forM_ xs $ \x->runErrorT (scraper x) >>= \res->calcAndPrint res

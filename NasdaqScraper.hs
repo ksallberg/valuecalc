@@ -4,9 +4,10 @@ module NasdaqScraper
 (
      Ticker
    , Company(..)
-   , parse
+   , parseNasdaq
    , fromMilDol
    , fromDolSign
+   , ErrorW
 )
 where
 
@@ -31,17 +32,6 @@ marketURL tick = "http://www.nasdaq.com/symbol/"++tick
    
    after that just add six 0 to represent it in dollars
 -}
-{-fromMilDol :: String -> Integer
-fromMilDol str 
-   | take 2 str == "0." = (read (t $ drop 2 str) :: Integer) * 100000
-   | otherwise =
-      case length (t str) of
-         0 -> 0
-         _ -> (read (t str) :: Integer)*1000000
-      where t inp = dropWhile ((flip elem) ".,")
-                              [x|x<-takeWhile (/='.') inp,x/=',']
--}
-
 fromMilDol :: String -> Integer
 fromMilDol ""  = 0
                  -- keeping this to make sure we can still handle
@@ -68,8 +58,8 @@ fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Integer
    markedLink is defined as the markets valuation of
    the company i.e. the market cap
 -}
-parse :: Ticker -> ErrorW Company
-parse ticker =
+parseNasdaq :: Ticker -> ErrorW Company
+parseNasdaq ticker =
    -- get the ticker from the url 
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker
