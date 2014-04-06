@@ -15,7 +15,6 @@ main = do quickCheck prop_unit
           quickCheck $ forAll genFromDolSign       prop_fromDolSign
           quickCheck $ forAll genFromMilDol        prop_fromMilDol
           quickCheck $ forAll genToMilSek          prop_toMilSek
-          quickCheck $ forAll genToBilSek          prop_toBilSek
           quickCheck $ forAll genFromCommanotation prop_fromCommanotation
 
 -- Telling quickcheck how to generate a company.
@@ -34,21 +33,23 @@ instance Arbitrary Company where
 
    "$ " is added before all instances of this string,
    but this is not stated here because of optimization
+
+   okay filters the input space to discard meaningless tests
 -}
 genFromDolSign :: Gen String
-genFromDolSign = suchThat (listOf (elements "0123456789")) okay
+genFromDolSign = suchThat (listOf $ elements "0123456789") okay
    where okay str = length str > 0
 
+-- okay filters the input space to discard meaningless tests
 genFromMilDol :: Gen String
-genFromMilDol = suchThat (listOf (elements "0123456789.,")) okayString
-   where okayString str = (beforeDot str) /= "" && (length $ filter (=='.') str) <= 1 && 
-                          str /= "" && head str /= '.' && head str /= ','
+genFromMilDol = suchThat (listOf $ elements "0123456789.,") okay
+   where okay str = (beforeDot str) /= "" && (length $ filter (=='.') str) <= 1 &&
+                    str /= "" && head str /= '.' && head str /= ','
 
+-- okay filters the input space to discard meaningless tests
 genToMilSek :: Gen String
-genToMilSek = elements ["1","2"]
-
-genToBilSek :: Gen String
-genToBilSek = elements ["1","3"]
+genToMilSek = suchThat (listOf $ elements "0123456789") okay
+   where okay str = (str/="") && (head str /= '0')
 
 genFromCommanotation :: Gen String
 genFromCommanotation = elements ["8","9"]
@@ -94,13 +95,9 @@ prop_fromMilDol ""  = True
 prop_fromMilDol "0" = True
 prop_fromMilDol str = fromMilDol str == (read (beforeDot str) :: Integer) * 1000000
 
--- TODO: Same TODO as above
+-- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
-prop_toMilSek str = True
-
--- TODO: Same TODO as above
-prop_toBilSek :: String -> Bool
-prop_toBilSek str = True
+prop_toMilSek str = str ++ "000000" == show (toMilSek str)
 
 -- TODO: Same TODO as above
 prop_fromCommanotation :: String -> Bool
