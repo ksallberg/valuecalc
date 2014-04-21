@@ -1,3 +1,4 @@
+import Data.Maybe
 import Test.QuickCheck
 import Text.HTML.TagSoup
 import Scraping      (Company (..), dropWhitespace, dropEmpty)
@@ -105,7 +106,7 @@ prop_fromMilDol str = fromMilDol str == (read (beforeDot str)::Integer)*1000000
 
 -- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
-prop_toMilSek str = str ++ "000000" == show (toMilSek str)
+prop_toMilSek str = str ++ "000000" == show (fromJust $ toMilSek str)
 
 -- fromCommanotation takes a String and returns a String
 -- the result from running fromCommanotation should NOT include 'B'

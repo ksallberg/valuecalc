@@ -12,32 +12,43 @@ where
 import Control.Monad
 import Control.Monad.Error
 import Data.Either
+import Data.Maybe
 import Scraping
 import Text.HTML.TagSoup
+import Text.Read
 import Network.HTTP
 
 -- Error message for mcap
 mcapError :: ErrorM
 mcapError = "Error reading the OMX market cap."
 
+mcapErrorR :: ErrorM
+mcapErrorR = "Error reading refined market cap to Integer."
+
 -- Error message for total assets
 asstError :: ErrorM
 asstError = "Error reading OMX total assets."
 
+asstErrorR :: ErrorM
+asstErrorR = "Error reading refined total assets to Integer."
+
 -- Error message for liabilities
 liabError :: ErrorM
 liabError = "Error reading OMX total liabilities."
+
+liabErrorR :: ErrorM
+liabErrorR = "Error reading refined total liabilities to Integer."
 
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String
 balanceSheetURL tick
    = "http://se.investing.com/equities/" ++ tick ++ "-balance-sheet"
 
-toMilSek :: String -> Integer
-toMilSek inp = read (inp ++ take 6 (repeat '0')) :: Integer
+toMilSek :: String -> Maybe Integer
+toMilSek inp = readMaybe (inp ++ take 6 (repeat '0'))
 
-toBilSek :: String -> Integer
-toBilSek inp = read (fromCommanotation inp) :: Integer
+toBilSek :: String -> Maybe Integer
+toBilSek inp = readMaybe (fromCommanotation inp)
 
 -- from something like 1,23B to 1230000000
 fromCommanotation :: String -> String
@@ -70,10 +81,20 @@ parseOMX ticker =
       totalAssets <- getTotalAssets reducedLs
       totalLiab   <- getTotalLiabilities reducedLs
       marketCap   <- getMarketCap marketLink
-      return $ Company{name             = ticker,
-                       totalAssets      = toMilSek totalAssets,
-                       totalLiabilities = toMilSek totalLiab,
-                       marketCap        = toBilSek marketCap}
+      -- handle the potential failure of reading a string to integer:
+      totAssets   <- sFromJust (toMilSek totalAssets) asstErrorR
+      totLiab     <- sFromJust (toMilSek totalLiab)   liabErrorR
+      marketC     <- sFromJust (toBilSek marketCap)   mcapErrorR
+      return $ Company{name = ticker,
+                       totalAssets      = totAssets,
+                       totalLiabilities = totLiab,
+                       marketCap        = marketC}
+
+-- special from just, return or throw error inside the ErrorW monad
+-- TODO: Is it possible to somehow do this using liftM or lift?
+sFromJust :: Maybe Integer -> ErrorM -> ErrorW Integer
+sFromJust Nothing  err = throwError err
+sFromJust (Just x) err = return x
 
 {-
    OMX specific:
