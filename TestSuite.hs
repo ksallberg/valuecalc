@@ -49,10 +49,13 @@ genFromMilDol = suchThat (listOf $ elements "0123456789.,") okay
 -- okay filters the input space to discard meaningless tests
 genToMilSek :: Gen String
 genToMilSek = suchThat (listOf $ elements "0123456789") okay
-   where okay str = (str/="") && (head str /= '0')
+   where okay str = (str/="") && noBeginningZero str
 
 genFromCommanotation :: Gen String
-genFromCommanotation = elements ["8","9"]
+genFromCommanotation = suchThat (listOf $ elements "0123456789,") okay
+   where okay str = str /= "" && head str /= ',' &&
+                    elem ',' str && last str /= ',' &&
+                    noBeginningZero str
 
 {- @how: quickCheck prop_unit
    Just a unit function doing nothing.
@@ -84,24 +87,36 @@ prop_dropEmpty inp =
 prop_fromDolSign :: String -> Bool
 prop_fromDolSign "$" = (show $ fromDolSign "$") == "0"
 prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
-   where parsed      = show $ fromDolSign ("$ 0" ++ str) -- optimizing, I want "$ 0" to be leading
+   where parsed      = show $ fromDolSign ("$ 0" ++ str)
+   -- optimizing, I want "$ 0" to be leading
 
 beforeDot :: String -> String
 beforeDot str = dropWhile (=='0') $ takeWhile (/='.') $ filter (/=',') str
+
+-- this returns True when there are no 0's in the beginning of the input str
+noBeginningZero :: String -> Bool
+noBeginningZero str = (length $ takeWhile (=='0') str) == 0
 
 -- no commas, no dot, right amount of 0's
 prop_fromMilDol :: String -> Bool
 prop_fromMilDol ""  = True
 prop_fromMilDol "0" = True
-prop_fromMilDol str = fromMilDol str == (read (beforeDot str) :: Integer) * 1000000
+prop_fromMilDol str = fromMilDol str == (read (beforeDot str)::Integer)*1000000
 
 -- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
 prop_toMilSek str = str ++ "000000" == show (toMilSek str)
 
--- TODO: Same TODO as above
+-- fromCommanotation takes a String and returns a String
+-- the result from running fromCommanotation should NOT include 'B'
+-- adjAfter 
 prop_fromCommanotation :: String -> Bool
-prop_fromCommanotation str = True
+prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
+   -- B should trail any number (B for billion)
+   where res       = fromCommanotation $ str ++ "B"
+         beforeCom = takeWhile (/=',') str
+         afterCom  = tail $ dropWhile (/=',') str
+         adjAfter  = afterCom ++ take (9-length afterCom) (repeat '0') -- add trailing 0's
 
 -- Calculations
 -- the valuation calculations gives back positive or 

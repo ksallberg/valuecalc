@@ -34,15 +34,18 @@ balanceSheetURL tick
    = "http://se.investing.com/equities/" ++ tick ++ "-balance-sheet"
 
 toMilSek :: String -> Integer
-toMilSek inp = read (inp ++ (take 6 (repeat '0'))) :: Integer
+toMilSek inp = read (inp ++ take 6 (repeat '0')) :: Integer
 
 toBilSek :: String -> Integer
 toBilSek inp = read (fromCommanotation inp) :: Integer
 
+-- from something like 1,23B to 1230000000
 fromCommanotation :: String -> String
 fromCommanotation inp =
-   takeWhile (/=',') inp ++ follow ++ take (9-length follow) (repeat '0')
-      where follow = tail $ takeWhile (/='B') $ dropWhile (/=',') inp
+   dropWhile (=='0') $ takeWhile c inp ++ follow ++ take lfoll (repeat '0')
+      where follow = tail $ takeWhile (/='B') $ dropWhile c inp
+            lfoll  = 9-length follow
+            c      = (/=',')
 
 -- give the market url, the one to get 
 marketURL :: Ticker -> String
