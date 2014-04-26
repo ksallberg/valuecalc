@@ -34,22 +34,17 @@ main = do loadCompanyList parseOMX    omxList
 calcAndPrint :: Either String Company -> IO ()
 calcAndPrint input = do
    case input of
-      Left error -> putStr (show error)
-      Right info -> do
+      Left  error   -> putStr (show error)
+      Right company -> do
          putStrLn ""
-         putStr $ "name: "                ++ (name info)
-         putStr $ ", total assets: "      ++ show (totalAssets info)
-         putStr $ ", total liabilities: " ++ show (totalLiabilities info)
-         putStr $ ", market cap: "   ++ show (marketCap info)
+         putStr $ "name: "                ++ (name company)
+         putStr $ ", total assets: "      ++ show (totalAssets company)
+         putStr $ ", total liabilities: " ++ show (totalLiabilities company)
+         putStr $ ", market cap: "   ++ show (marketCap company)
          putStr $ ", undervalued: "  ++ show (undervalued) ++
                   ", difference: "   ++ show (difference)
-
-         where undervalued = isUnderValued (totalAssets info)
-                                           (totalLiabilities info)
-                                           (marketCap info)
-               difference  = getDiff       (totalAssets info)
-                                           (totalLiabilities info)
-                                           (marketCap info)
+         where undervalued = isUnderValued company
+               difference  = getDiff company
 
 {-
    For a list of given tickers, load the wanted data

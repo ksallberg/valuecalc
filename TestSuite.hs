@@ -8,7 +8,8 @@ import Calculations  (getDiff, isUnderValued)
 
 -- running test suite, TODO: better way of defining a quickCheck test suite?
 main :: IO ()
-main = do quickCheck prop_unit
+main = do quickCheck prop_getDiff
+          quickCheck prop_isUnderValued
           quickCheck prop_whiteSpacesDropped
           quickCheck prop_dropEmpty
           quickCheck prop_getDiff
@@ -58,12 +59,22 @@ genFromCommanotation = suchThat (listOf $ elements "0123456789,") okay
                     elem ',' str && last str /= ',' &&
                     noBeginningZero str
 
-{- @how: quickCheck prop_unit
-   Just a unit function doing nothing.
-   TODO: What can I do to test this?
+-- Testing the calculations module::getDiff
+prop_getDiff :: Company -> Bool
+prop_getDiff c = (ta-tl)-mc == getDiff c
+   where ta = totalAssets c
+         tl = totalLiabilities c
+         mc = marketCap c
+
+{- Testing the calculations module::isUnderValued
+   See if the ta-tl is larger than the marketcap and compare it
+   to the isUnderValued function from the calculations module
 -}
-prop_unit :: [Company] -> Bool
-prop_unit ls = ls == ls
+prop_isUnderValued :: Company -> Bool
+prop_isUnderValued c = ((ta-tl)>mc) == isUnderValued c
+   where ta = totalAssets c
+         tl = totalLiabilities c
+         mc = marketCap c
 
 {- in case it's TagText then we want to make sure a doesn't have whitespaces anymore
    in case of a Tag (that's not TagText) nothing should be changed in this case
@@ -118,18 +129,3 @@ prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
          beforeCom = takeWhile (/=',') str
          afterCom  = tail $ dropWhile (/=',') str
          adjAfter  = afterCom ++ take (9-length afterCom) (repeat '0') -- add trailing 0's
-
--- Calculations
--- the valuation calculations gives back positive or 
--- negative correctly (right side of 0)
-prop_getDiff :: Integer -> Integer -> Integer -> Bool
-prop_getDiff as lia mc
-   | as-lia >  mc = getDiff as lia mc >  0 && isUnderValued as lia mc       --under
-   | as-lia == mc = getDiff as lia mc == 0 && not (isUnderValued as lia mc) --even
-   | as-lia <  mc = getDiff as lia mc <  0 && not (isUnderValued as lia mc) --over
-
--- just test if undervalued and overvalued works
-prop_isUnderValued :: Integer -> Integer -> Integer -> Bool
-prop_isUnderValued as lia mc
-   | as-lia > mc = isUnderValued as lia mc == True
-   | otherwise   = isUnderValued as lia mc == False
