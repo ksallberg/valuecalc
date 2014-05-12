@@ -1,4 +1,4 @@
-module ValueCalc (
+module Main (
    main
 ) where
 
