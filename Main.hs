@@ -2,12 +2,7 @@ module Main (
    main
 ) where
 
-import Scraping
-import OMXScraper
-import NasdaqScraper
-import Calculations
-import NasdaqList
-import OMXList
+import Text.HTML.ValueCalc
 import Control.Monad
 import Control.Monad.Error
 import Data.Either

@@ -11,7 +11,11 @@ module Text.HTML.ValueCalc
    getDiff, 
    isUnderValued,
    omxList,
-   nasdaqList
+   nasdaqList,
+   parseOMX,
+   parseNasdaq,
+   ErrorW,
+   Ticker
 ) where
 
 import Text.HTML.ValueCalc.Calculations
