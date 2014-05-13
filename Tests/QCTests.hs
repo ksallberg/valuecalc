@@ -1,3 +1,5 @@
+module Tests.QCTests where
+
 import Data.Maybe
 import Test.QuickCheck
 import Text.HTML.TagSoup

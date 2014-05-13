@@ -30,7 +30,7 @@ executable valuecalc
 
 Test-Suite valuecalc-testsuite
   type:              exitcode-stdio-1.0
-  main-is:           QCTests.hs
+  main-is:           Tests/QCTests.hs
   build-depends:     base >=4.6 && <4.7,
                      mtl >=2.1 && <2.2,
                      tagsoup >=0.13 && <0.14,
