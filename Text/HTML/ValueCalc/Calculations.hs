@@ -6,9 +6,6 @@ module Text.HTML.ValueCalc.Calculations
 where
 
 import Text.HTML.ValueCalc.Scraping
-(
-   Company (..)
-)
 
 {-
    How much undervalued is the company? If negative
