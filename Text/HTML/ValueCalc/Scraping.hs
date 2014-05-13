@@ -6,7 +6,7 @@
    NASDAQ
 -}
 
-module Scraping
+module Text.HTML.ValueCalc.Scraping
 (
    getData,
    Ticker,

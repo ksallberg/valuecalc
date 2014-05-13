@@ -1,6 +1,6 @@
 {-# LANGUAGE PatternGuards #-}
 
-module NasdaqScraper
+module Text.HTML.ValueCalc.Scrapers.NasdaqScraper
 (
      Ticker
    , Company(..)
@@ -11,7 +11,7 @@ module NasdaqScraper
 where
 
 import Data.Either
-import Scraping
+import Text.HTML.ValueCalc.Scraping
 
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String

@@ -1,11 +1,14 @@
-module Calculations
+module Text.HTML.ValueCalc.Calculations
 (
-     getDiff,
-     isUnderValued
+   getDiff,
+   isUnderValued
 )
 where
 
-import Scraping (Company (..))
+import Text.HTML.ValueCalc.Scraping
+(
+   Company (..)
+)
 
 {-
    How much undervalued is the company? If negative

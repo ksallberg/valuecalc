@@ -1,4 +1,4 @@
-module OMXScraper
+module Text.HTML.ValueCalc.Scrapers.OMXScraper
 (
      Ticker
    , Company(..)
@@ -13,7 +13,7 @@ import Control.Monad
 import Control.Monad.Error
 import Data.Either
 import Data.Maybe
-import Scraping
+import Text.HTML.ValueCalc.Scraping
 import Text.HTML.TagSoup
 import Text.Read
 import Network.HTTP

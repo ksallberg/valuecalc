@@ -1,10 +1,14 @@
 import Data.Maybe
 import Test.QuickCheck
 import Text.HTML.TagSoup
-import Scraping      (Company (..), dropWhitespace, dropEmpty)
-import NasdaqScraper (fromMilDol, fromDolSign)
-import OMXScraper    (toMilSek, toBilSek, fromCommanotation)
-import Calculations  (getDiff, isUnderValued)
+import Text.HTML.ValueCalc.Scraping (Company (..),
+                                     dropWhitespace,
+                                     dropEmpty)
+import Text.HTML.ValueCalc.Scrapers.NasdaqScraper (fromMilDol, fromDolSign)
+import Text.HTML.ValueCalc.Scrapers.OMXScraper    (toMilSek,
+                                                   toBilSek,
+                                                   fromCommanotation)
+import Text.HTML.ValueCalc.Calculations  (getDiff, isUnderValued)
 
 -- running test suite, TODO: better way of defining a quickCheck test suite?
 main :: IO ()
