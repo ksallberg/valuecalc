@@ -1,6 +1,8 @@
 valuecalc
 =========
 
+cabal test valuecalc-testsuite
+
 Value based (haskell powered) investment calculations for the Nasdaq market.
 
 Usage:
