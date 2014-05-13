@@ -1,4 +1,3 @@
--- TODO: export the ValueCalc library
 module Text.HTML.ValueCalc
 (
    Company (..),
@@ -10,10 +9,14 @@ module Text.HTML.ValueCalc
    toBilSek,
    fromCommanotation,
    getDiff, 
-   isUnderValued
+   isUnderValued,
+   omxList,
+   nasdaqList
 ) where
 
+import Text.HTML.ValueCalc.Calculations
 import Text.HTML.ValueCalc.Scraping
+import Text.HTML.ValueCalc.Lists.NasdaqList
+import Text.HTML.ValueCalc.Lists.OMXList
 import Text.HTML.ValueCalc.Scrapers.NasdaqScraper
 import Text.HTML.ValueCalc.Scrapers.OMXScraper
-import Text.HTML.ValueCalc.Calculations

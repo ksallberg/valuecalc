@@ -1,4 +1,6 @@
-module OMXList (omxList) where
+module Text.HTML.ValueCalc.Lists.OMXList
+
+(omxList) where
 
 omxList :: [String]
 omxList = ["aarhuskarlshamn","abb-ltd","acando-b","acap-invest-a","acap-invest-b","active-biotech",

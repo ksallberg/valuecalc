@@ -1,4 +1,6 @@
-module NasdaqList (nasdaqList) where
+module Text.HTML.ValueCalc.Lists.NasdaqList
+
+(nasdaqList) where
 
 nasdaqList :: [String]
 nasdaqList = ["flws","fcty","fccy","srce","fubc","vnet","jobs","eght","avhi","shlm",
