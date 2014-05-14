@@ -1,22 +1,34 @@
-module Tests.QCTests where
+module Main where
 
+import Control.Monad
 import Data.Maybe
 import Test.QuickCheck
 import Text.HTML.TagSoup
 import Text.HTML.ValueCalc
+import System.Exit (exitFailure)
 
--- running test suite, TODO: better way of defining a quickCheck test suite?
+-- running test suite
 main :: IO ()
-main = do quickCheck prop_getDiff
-          quickCheck prop_isUnderValued
-          quickCheck prop_whiteSpacesDropped
-          quickCheck prop_dropEmpty
-          quickCheck prop_getDiff
-          quickCheck prop_isUnderValued
-          quickCheck $ forAll genFromDolSign       prop_fromDolSign
-          quickCheck $ forAll genFromMilDol        prop_fromMilDol
-          quickCheck $ forAll genToMilSek          prop_toMilSek
-          quickCheck $ forAll genFromCommanotation prop_fromCommanotation
+main = do
+   r1 <-quickCheckResult prop_getDiff
+   r2 <-quickCheckResult prop_isUnderValued
+   r3 <-quickCheckResult prop_whiteSpacesDropped
+   r4 <-quickCheckResult prop_dropEmpty
+   r5 <-quickCheckResult prop_getDiff
+   r6 <-quickCheckResult prop_isUnderValued
+   r7 <-quickCheckResult $ forAll genFromDolSign       prop_fromDolSign
+   r8 <-quickCheckResult $ forAll genFromMilDol        prop_fromMilDol
+   r9 <-quickCheckResult $ forAll genToMilSek          prop_toMilSek
+   r10<-quickCheckResult $ forAll genFromCommanotation prop_fromCommanotation
+   forM_ [r1,r2,r3,r4,r5,r6,r7,r8,r9,r10] qcToTest
+
+{-
+   For a Result, throw exitFailure if its not successful,
+   otherwise return unit
+-}
+qcToTest :: Result -> IO ()
+qcToTest (Success _ _ _) = return ()
+qcToTest _               = exitFailure
 
 -- Telling quickcheck how to generate a company.
 instance Arbitrary Company where
