@@ -16,6 +16,13 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
+library
+  exposed-modules:   Text.HTML.ValueCalc
+  build-depends:     base >=4.6,
+                     mtl >=2.1 && <2.2,
+                     tagsoup >=0.13 && <0.14,
+                     HTTP >=4000.2 && <4000.3,
+                     QuickCheck >=2.6 && <2.7
 
 executable valuecalc
   main-is:           Main.hs
