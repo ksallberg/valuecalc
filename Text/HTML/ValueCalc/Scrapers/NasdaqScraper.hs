@@ -16,7 +16,7 @@ import Text.HTML.ValueCalc.Scraping
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String
 balanceSheetURL tick =
-   concat ["http://stockreports.nasdaq.edgar-online.com/",tick,".html"]
+   concat ["http://stockreports.nasdaq.edgar-online.com/", tick, ".html"]
 
 -- give the market url, the one to get 
 marketURL :: Ticker -> String
@@ -64,7 +64,7 @@ parseNasdaq ticker =
           marketLink = marketURL ticker
       reducedLs   <- getFromHTTP link
       totalAssets <- getTotalAssets reducedLs
-      totalLiab   <- getTotalLiabilities reducedLs
+      totalLiab   <- getTotalLia    reducedLs
       marketCap   <- getMarketCap marketLink
       return $ Company{name             = ticker,
                        totalAssets      = fromMilDol  totalAssets,
@@ -73,37 +73,22 @@ parseNasdaq ticker =
 
 {-
    NASDAQ specific:
-   From a list of tags, find the total
-   assets value for the given company
+   From a list of tags, find the total assets value for the given company
 -}
 getTotalAssets :: [Tag String] -> ErrorW String
-getTotalAssets t = getData
-                      t
-                      "TotalAssets"
-                      5
-                      "Error reading total assets"
+getTotalAssets t = getData t "TotalAssets" 5 "Error reading total assets"
 
 {-
    NASDAQ specific:
    Parse total liabilities
 -}
-getTotalLiabilities :: [Tag String] -> ErrorW String
-getTotalLiabilities t = getData
-                           t 
-                           "TotalLiabilities"
-                           5 
-                           "Error reading total liabilities"
+getTotalLia :: [Tag String] -> ErrorW String
+getTotalLia t = getData t "TotalLiabilities" 5 "Error reading total liab"
 
 {-
    NASDAQ specific:
-   Get the market cap from another page than the other
-   data is fetched from
+   Get the market cap from another page than the other data is fetched from
 -}
 getMarketCap :: String -> ErrorW String
-getMarketCap link =
-   getFromHTTP link >>= 
-      (\x->getData
-              x
-              "Marketcap"
-              13
-              "Error reading market cap")
+getMarketCap link = getFromHTTP link >>=
+                    (\x->getData x "Marketcap" 13 "Error reading market cap")

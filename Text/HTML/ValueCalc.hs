@@ -10,8 +10,6 @@ module Text.HTML.ValueCalc
    fromCommanotation,
    getDiff, 
    isUnderValued,
-   omxList,
-   nasdaqList,
    parseOMX,
    parseNasdaq,
    ErrorW,
@@ -20,7 +18,5 @@ module Text.HTML.ValueCalc
 
 import Text.HTML.ValueCalc.Calculations
 import Text.HTML.ValueCalc.Scraping
-import Text.HTML.ValueCalc.Lists.NasdaqList
-import Text.HTML.ValueCalc.Lists.OMXList
 import Text.HTML.ValueCalc.Scrapers.NasdaqScraper
 import Text.HTML.ValueCalc.Scrapers.OMXScraper
