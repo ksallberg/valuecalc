@@ -56,8 +56,9 @@ genFromDolSign = suchThat (listOf $ elements "0123456789") okay
 -- okay filters the input space to discard meaningless tests
 genFromMilDol :: Gen String
 genFromMilDol = suchThat (listOf $ elements "0123456789.,") okay
-   where okay str = (beforeDot str) /= "" && (length $ filter (=='.') str) <= 1 &&
-                    str /= "" && head str /= '.' && head str /= ','
+   where okay str =
+      (beforeDot str) /= "" && (length $ filter (=='.') str) <= 1
+      && str /= "" && head str /= '.' && head str /= ','
 
 -- okay filters the input space to discard meaningless tests
 genToMilSek :: Gen String
@@ -87,9 +88,9 @@ prop_isUnderValued c = ((ta-tl)>mc) == isUnderValued c
          tl = totalLiabilities c
          mc = marketCap c
 
-{- in case it's TagText then we want to make sure a doesn't have whitespaces anymore
-   in case of a Tag (that's not TagText) nothing should be changed in this case
-   using ws to not use 
+{- in case it's TagText then we want to make sure a doesn't 
+   have whitespaces anymore in case of a Tag (that's not TagText)
+   nothing should be changed in this case using ws to not use 
 -}
 prop_whiteSpacesDropped :: String -> Bool
 prop_whiteSpacesDropped "" = True
@@ -124,7 +125,8 @@ noBeginningZero str = (length $ takeWhile (=='0') str) == 0
 prop_fromMilDol :: String -> Bool
 prop_fromMilDol ""  = True
 prop_fromMilDol "0" = True
-prop_fromMilDol str = fromMilDol str == (read (beforeDot str)::Integer)*1000000
+prop_fromMilDol str =
+   fromMilDol str == (read (beforeDot str)::Integer)*1000000
 
 -- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
@@ -134,9 +136,10 @@ prop_toMilSek str = str ++ "000000" == show (fromJust $ toMilSek str)
 -- the result from running fromCommanotation should NOT include 'B'
 -- adjAfter 
 prop_fromCommanotation :: String -> Bool
-prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
+prop_fromCommanotation str = not (elem 'B' res) && beforeCom++adjAfter == res
    -- B should trail any number (B for billion)
    where res       = fromCommanotation $ str ++ "B"
          beforeCom = takeWhile (/=',') str
          afterCom  = tail $ dropWhile (/=',') str
-         adjAfter  = afterCom ++ take (9-length afterCom) (repeat '0') -- add trailing 0's
+         adjAfter  = afterCom ++ take (9-length afterCom) (repeat '0')
+                     -- add trailing 0's
