@@ -58,7 +58,7 @@ fromCommanotation inp =
             lfoll  = 9-length follow
             c      = (/=',')
 
--- give the market url, the one to get 
+-- give the market url, the one to get
 marketURL :: Ticker -> String
 marketURL tick = "http://se.investing.com/equities/" ++ tick
 
@@ -74,7 +74,7 @@ marketURL tick = "http://se.investing.com/equities/" ++ tick
 -}
 parseOMX :: Ticker -> ErrorW Company
 parseOMX ticker =
-   -- get the ticker from the url 
+   -- get the ticker from the url
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker
       reducedLs   <- getFromHTTP link

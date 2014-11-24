@@ -1,6 +1,6 @@
 {-
    Here I factor out functionality common for all scrapers.
-   
+
    Re-exporting some of tagsoup's tags to hide them
    from the application specific parsers, for instance
    NASDAQ
@@ -36,12 +36,10 @@ type ErrorW = ErrorT ErrorM IO -- Error Wrapper
    want to know about a company right now.
 -}
 data Company = Company {
-      
       name             :: String,
       totalAssets      :: Integer,
       totalLiabilities :: Integer,
       marketCap        :: Integer
-
    } deriving (Show,Read,Eq)
 
 -- From all TagText objects, remove all white spaces

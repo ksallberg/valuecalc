@@ -12,7 +12,7 @@ import Text.HTML.ValueCalc.Scraping
    value, then the company is instead overvalued...
 -}
 getDiff :: Company -> Integer
-getDiff company = 
+getDiff company =
    ((totalAssets company)-(totalLiabilities company)) - (marketCap company)
 
 {-

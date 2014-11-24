@@ -88,9 +88,9 @@ prop_isUnderValued c = ((ta-tl)>mc) == isUnderValued c
          tl = totalLiabilities c
          mc = marketCap c
 
-{- in case it's TagText then we want to make sure a doesn't 
+{- in case it's TagText then we want to make sure a doesn't
    have whitespaces anymore in case of a Tag (that's not TagText)
-   nothing should be changed in this case using ws to not use 
+   nothing should be changed in this case using ws to not use
 -}
 prop_whiteSpacesDropped :: String -> Bool
 prop_whiteSpacesDropped "" = True
@@ -99,7 +99,7 @@ prop_whiteSpacesDropped x  =
    in dropWhitespace (TagText x) == TagText [c|c<-x,not $ elem c ws]
 
 -- dropEmpty :: [Tag String] -> [Tag String]
--- i only want to 
+-- i only want to
 prop_dropEmpty :: [String] -> Bool
 prop_dropEmpty []  = True
 prop_dropEmpty inp =
@@ -134,7 +134,7 @@ prop_toMilSek str = str ++ "000000" == show (fromJust $ toMilSek str)
 
 -- fromCommanotation takes a String and returns a String
 -- the result from running fromCommanotation should NOT include 'B'
--- adjAfter 
+-- adjAfter
 prop_fromCommanotation :: String -> Bool
 prop_fromCommanotation str = not (elem 'B' res) && beforeCom++adjAfter == res
    -- B should trail any number (B for billion)

@@ -8,7 +8,7 @@ module Text.HTML.ValueCalc
    toMilSek,
    toBilSek,
    fromCommanotation,
-   getDiff, 
+   getDiff,
    isUnderValued,
    parseOMX,
    parseNasdaq,

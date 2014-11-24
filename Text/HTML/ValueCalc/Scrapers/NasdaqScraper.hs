@@ -18,7 +18,7 @@ balanceSheetURL :: Ticker -> String
 balanceSheetURL tick =
    concat ["http://stockreports.nasdaq.edgar-online.com/", tick, ".html"]
 
--- give the market url, the one to get 
+-- give the market url, the one to get
 marketURL :: Ticker -> String
 marketURL tick = "http://www.nasdaq.com/symbol/"++tick
 
@@ -28,7 +28,7 @@ marketURL tick = "http://www.nasdaq.com/symbol/"++tick
    a string represented number that is expressing million dollars.
 
    take all chars before . and remove , from this = beforeCommaNoDots
-   
+
    after that just add six 0 to represent it in dollars
 -}
 fromMilDol :: String -> Integer
@@ -59,7 +59,7 @@ fromDolSign str = read (drop 2 [x|x<-str,x/=',']) :: Integer
 -}
 parseNasdaq :: Ticker -> ErrorW Company
 parseNasdaq ticker =
-   -- get the ticker from the url 
+   -- get the ticker from the url
    do let link       = balanceSheetURL ticker
           marketLink = marketURL ticker
       reducedLs   <- getFromHTTP link
