@@ -14,7 +14,6 @@ main = do omxList <- loadTickers "lists/OMX.tickers"
           loadCompanyList parseOMX omxList
           putStrLn ""
           putStrLn "-end of omx, now nasdaq-"
-
           nasdaqList <- loadTickers "lists/Nasdaq.tickers"
           loadCompanyList parseNasdaq nasdaqList
           putStrLn ""
@@ -34,7 +33,7 @@ loadTickers fp = readFile fp >>= \f-> return . lines $ f
 calcAndPrint :: Either String Company -> IO ()
 calcAndPrint input = do
    case input of
-      Left  error   -> putStr (show error)
+      Left  error   -> return () -- putStr (show error) -- removed debug msgs
       Right company -> do
          putStrLn ""
          putStr $ "name: "                ++ (name company)
@@ -52,4 +51,4 @@ calcAndPrint input = do
 -}
 loadCompanyList :: (Ticker -> ErrorW Company) -> [Ticker] -> IO ()
 loadCompanyList scraper xs =
-   forM_ xs $ \x->runErrorT (scraper x) >>= \res->calcAndPrint res
+   forM_ xs $ \x-> runErrorT (scraper x) >>= \res -> calcAndPrint res
