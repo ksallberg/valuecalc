@@ -8,7 +8,7 @@ import Control.Monad.Error
 import Data.Either
 import System.IO
 
-{- For now, -}
+{- For now, run through NasdaqOMX and Nasdaq -}
 main :: IO ()
 main = do omxList <- loadTickers "lists/OMX.tickers"
           loadCompanyList parseOMX omxList
@@ -17,7 +17,7 @@ main = do omxList <- loadTickers "lists/OMX.tickers"
           nasdaqList <- loadTickers "lists/Nasdaq.tickers"
           loadCompanyList parseNasdaq nasdaqList
           putStrLn ""
-          putStrLn "-end-"
+          putStrLn "-end of nasdaq-"
 
 loadTickers :: FilePath -> IO [String]
 loadTickers fp = readFile fp >>= \f-> return . lines $ f
@@ -33,7 +33,7 @@ loadTickers fp = readFile fp >>= \f-> return . lines $ f
 calcAndPrint :: Either String Company -> IO ()
 calcAndPrint input = do
    case input of
-      Left  error   -> return () -- putStr (show error) -- removed debug msgs
+      Left error -> return () -- putStr (show error) -- removed debug msgs
       Right company -> do
          putStrLn ""
          putStr $ "name: "                ++ (name company)
