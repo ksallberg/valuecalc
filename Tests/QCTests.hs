@@ -10,16 +10,16 @@ import System.Exit (exitFailure)
 -- running test suite
 main :: IO ()
 main = do
-   r1 <- quickCheckResult prop_getDiff
-   r2 <- quickCheckResult prop_isUnderValued
-   r3 <- quickCheckResult prop_whiteSpacesDropped
-   r4 <- quickCheckResult prop_dropEmpty
-   r5 <- quickCheckResult prop_getDiff
-   r6 <- quickCheckResult prop_isUnderValued
-   r7 <- quickCheckResult $ forAll genFromDolSign       prop_fromDolSign
-   r8 <- quickCheckResult $ forAll genFromMilDol        prop_fromMilDol
-   r9 <- quickCheckResult $ forAll genToMilSek          prop_toMilSek
-   r10<- quickCheckResult $ forAll genFromCommanotation prop_fromCommanotation
+   r1  <- quickCheckResult prop_getDiff
+   r2  <- quickCheckResult prop_isUnderValued
+   r3  <- quickCheckResult prop_whiteSpacesDropped
+   r4  <- quickCheckResult prop_dropEmpty
+   r5  <- quickCheckResult prop_getDiff
+   r6  <- quickCheckResult prop_isUnderValued
+   r7  <- quickCheckResult $ forAll genFromDolSign       prop_fromDolSign
+   r8  <- quickCheckResult $ forAll genFromMilDol        prop_fromMilDol
+   r9  <- quickCheckResult $ forAll genToMilSek          prop_toMilSek
+   r10 <- quickCheckResult $ forAll genFromCommanotation prop_fromCommanotation
    forM_ [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10] qcToTest
 
 {-
@@ -32,11 +32,8 @@ qcToTest _               = exitFailure
 
 -- Telling quickcheck how to generate a company.
 instance Arbitrary Company where
-   arbitrary = do int1 <- randInt
-                  int2 <- randInt
-                  int3 <- randInt
-                  return $ Company "Random Company" int1 int2 int3
-               where randInt = elements [-9999..9999] :: Gen Integer
+   arbitrary = liftM3 (Company "Random Company") randInt randInt randInt
+      where randInt = elements [-9999..9999] :: Gen Integer
 
 {-
    Generators for specific kinds of strings needed
@@ -69,8 +66,10 @@ genToMilSek = suchThat (listOf $ elements "0123456789") okay
 
 genFromCommanotation :: Gen String
 genFromCommanotation = suchThat (listOf $ elements "0123456789,") okay
-   where okay str = str /= "" && head str /= ',' &&
-                    elem ',' str && last str /= ',' &&
+   where okay str = str /= ""       &&
+                    head str /= ',' &&
+                    elem ',' str    &&
+                    last str /= ',' &&
                     noBeginningZero str
 
 -- Testing the calculations module::getDiff
@@ -85,7 +84,7 @@ prop_getDiff c = (ta-tl)-mc == getDiff c
    to the isUnderValued function from the calculations module
 -}
 prop_isUnderValued :: Company -> Bool
-prop_isUnderValued c = ((ta-tl)>mc) == isUnderValued c
+prop_isUnderValued c = ((ta - tl) > mc) == isUnderValued c
    where ta = totalAssets c
          tl = totalLiabilities c
          mc = marketCap c
@@ -128,7 +127,7 @@ prop_fromMilDol :: String -> Bool
 prop_fromMilDol ""  = True
 prop_fromMilDol "0" = True
 prop_fromMilDol str =
-   fromMilDol str == (read (beforeDot str)::Integer)*1000000
+   fromMilDol str == (read (beforeDot str)::Integer) * 1000000
 
 -- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
@@ -138,7 +137,7 @@ prop_toMilSek str = str ++ "000000" == show (fromJust $ toMilSek str)
 -- the result from running fromCommanotation should NOT include 'B'
 -- adjAfter
 prop_fromCommanotation :: String -> Bool
-prop_fromCommanotation str = not (elem 'B' res) && beforeCom++adjAfter == res
+prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
    -- B should trail any number (B for billion)
    where res       = fromCommanotation $ str ++ "B"
          beforeCom = takeWhile (/=',') str
