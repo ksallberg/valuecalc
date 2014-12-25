@@ -62,7 +62,7 @@ genFromMilDol = suchThat (listOf $ elements "0123456789.,") okay
 -- okay filters the input space to discard meaningless tests
 genToMilSek :: Gen String
 genToMilSek = suchThat (listOf $ elements "0123456789") okay
-   where okay str = (str/="") && noBeginningZero str
+   where okay str = (str /= "") && noBeginningZero str
 
 genFromCommanotation :: Gen String
 genFromCommanotation = suchThat (listOf $ elements "0123456789,") okay
@@ -97,15 +97,15 @@ prop_whiteSpacesDropped :: String -> Bool
 prop_whiteSpacesDropped "" = True
 prop_whiteSpacesDropped x  =
    let ws = [' ','\t','\n','\v','\f','\r','\160']
-   in dropWhitespace (TagText x) == TagText [c|c<-x,not $ elem c ws]
+   in dropWhitespace (TagText x) == TagText [c | c <- x, not $ elem c ws]
 
 -- dropEmpty :: [Tag String] -> [Tag String]
 -- i only want to
 prop_dropEmpty :: [String] -> Bool
 prop_dropEmpty []  = True
 prop_dropEmpty inp =
-   dropEmpty tagged == [x|x<-tagged,x/=(TagText "")]
-      where tagged = map (\x->TagText x) inp
+   dropEmpty tagged == [x | x <- tagged, x /= (TagText "")]
+      where tagged = map (\x -> TagText x) inp
 
 -- when fromDolSign has been run, there should be no ',' in the result
 -- if a lonely $ is sent in, then the result should be 0
@@ -116,7 +116,7 @@ prop_fromDolSign str = (not $ elem ',' parsed) && (take 2 parsed) /= "$ "
    -- optimizing, I want "$ 0" to be leading
 
 beforeDot :: String -> String
-beforeDot str = dropWhile (=='0') $ takeWhile (/='.') $ filter (/=',') str
+beforeDot str = dropWhile (=='0') $ takeWhile (/='.') $ filter (/=',') str
 
 -- this returns True when there are no 0's in the beginning of the input str
 noBeginningZero :: String -> Bool
@@ -142,5 +142,5 @@ prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
    where res       = fromCommanotation $ str ++ "B"
          beforeCom = takeWhile (/=',') str
          afterCom  = tail $ dropWhile (/=',') str
-         adjAfter  = afterCom ++ take (9-length afterCom) (repeat '0')
+         adjAfter  = afterCom ++ take (9 - length afterCom) (repeat '0')
                      -- add trailing 0's
