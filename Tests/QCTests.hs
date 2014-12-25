@@ -9,18 +9,22 @@ import System.Exit (exitFailure)
 
 -- running test suite
 main :: IO ()
-main = do
-   r1  <- quickCheckResult prop_getDiff
-   r2  <- quickCheckResult prop_isUnderValued
-   r3  <- quickCheckResult prop_whiteSpacesDropped
-   r4  <- quickCheckResult prop_dropEmpty
-   r5  <- quickCheckResult prop_getDiff
-   r6  <- quickCheckResult prop_isUnderValued
-   r7  <- quickCheckResult $ forAll genFromDolSign       prop_fromDolSign
-   r8  <- quickCheckResult $ forAll genFromMilDol        prop_fromMilDol
-   r9  <- quickCheckResult $ forAll genToMilSek          prop_toMilSek
-   r10 <- quickCheckResult $ forAll genFromCommanotation prop_fromCommanotation
-   forM_ [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10] qcToTest
+main = do quickCheck threeArrowTest
+          r1  <- quickCheckResult          prop_getDiff
+          r2  <- quickCheckResult          prop_isUnderValued
+          r3  <- quickCheckResult          prop_whiteSpacesDropped
+          r4  <- quickCheckResult          prop_dropEmpty
+          r6  <- quickCheckResult          prop_isUnderValued
+          r7  <- wrap genFromDolSign       prop_fromDolSign
+          r8  <- wrap genFromMilDol        prop_fromMilDol
+          r9  <- wrap genToMilSek          prop_toMilSek
+          r10 <- wrap genFromCommanotation prop_fromCommanotation
+          forM_ [r1, r2, r3, r4, r6, r7, r8, r9, r10] qcToTest
+    where wrap f p = quickCheckResult $ forAll f p
+
+-- Property...
+threeArrowTest :: Int -> Property
+threeArrowTest i = (i /= 23) ==> i == i
 
 {-
    For a Result, throw exitFailure if its not successful,
