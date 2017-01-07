@@ -19,7 +19,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:   Text.HTML.ValueCalc
   build-depends:     base >=4.6,
-                     mtl >=2.1 && <2.2,
+                     mtl >=2.1,
                      tagsoup,
                      HTTP >=4000.2 && <4000.3,
                      QuickCheck
@@ -30,7 +30,7 @@ executable valuecalc
   -- other-modules:
   other-extensions:  PatternGuards
   build-depends:     base >=4.6,
-                     mtl >=2.1 && <2.2,
+                     mtl >=2.1,
                      tagsoup,
                      HTTP >=4000.2 && <4000.3,
                      QuickCheck
@@ -43,7 +43,7 @@ Test-Suite test-qc
   main-is:           Tests/QCTests.hs
   other-modules:     Text.HTML.ValueCalc
   build-depends:     base >=4.6,
-                     mtl >=2.1 && <2.2,
+                     mtl >=2.1,
                      tagsoup,
                      HTTP >=4000.2 && <4000.3,
                      QuickCheck
