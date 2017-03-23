@@ -1,0 +1,17 @@
+flags: {}
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+- HTTP-4000.3.6
+- QuickCheck-2.9.2
+- mtl-2.2.1
+- network-2.6.3.1
+- network-uri-2.6.1.0
+- parsec-3.1.11
+- primitive-0.6.2.0
+- random-1.1
+- tagsoup-0.14.1
+- text-1.2.2.1
+- tf-random-0.5
+resolver: ghc-8.0.2
