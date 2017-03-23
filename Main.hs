@@ -10,7 +10,8 @@ import System.IO
 
 {- For now, run through NasdaqOMX and Nasdaq -}
 main :: IO ()
-main = do omxList <- loadTickers "lists/OMX.tickers"
+main = do putStrLn "executing valuecalc..."
+          omxList <- loadTickers "lists/OMX.tickers"
           loadCompanyList parseOMX omxList
           putStrLn ""
           putStrLn "-end of omx, now nasdaq-"
