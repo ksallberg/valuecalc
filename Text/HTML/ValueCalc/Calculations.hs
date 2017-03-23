@@ -1,9 +1,9 @@
 module Text.HTML.ValueCalc.Calculations
-(
-   getDiff,
-   isUnderValued
-)
-where
+       (
+         getDiff,
+         isUnderValued
+       )
+       where
 
 import Text.HTML.ValueCalc.Scraping
 
@@ -13,7 +13,7 @@ import Text.HTML.ValueCalc.Scraping
 -}
 getDiff :: Company -> Integer
 getDiff company =
-   ((totalAssets company)-(totalLiabilities company)) - (marketCap company)
+  ((totalAssets company)-(totalLiabilities company)) - (marketCap company)
 
 {-
    If the value from the balance sheet
@@ -22,4 +22,4 @@ getDiff company =
 -}
 isUnderValued :: Company -> Bool
 isUnderValued company =
-   ((totalAssets company)-(totalLiabilities company)) > (marketCap company)
+  ((totalAssets company)-(totalLiabilities company)) > (marketCap company)

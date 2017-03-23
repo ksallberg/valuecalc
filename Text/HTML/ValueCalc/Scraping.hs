@@ -7,21 +7,20 @@
 -}
 
 module Text.HTML.ValueCalc.Scraping
-(
-   getData,
-   Ticker,
-   ErrorM,
-   ErrorW,
-   Tag (..),
-   Company (..),
-   liftIO,
-   parseTags,
-   getFromHTTP,
-   dropWhitespace,
-   dropEmpty
-)
-
-where
+       (
+         getData,
+         Ticker,
+         ErrorM,
+         ErrorW,
+         Tag (..),
+         Company (..),
+         liftIO,
+         parseTags,
+         getFromHTTP,
+         dropWhitespace,
+         dropEmpty
+       )
+       where
 
 import Network.HTTP
 import Control.Monad.Error
@@ -36,11 +35,11 @@ type ErrorW = ErrorT ErrorM IO -- Error Wrapper
    want to know about a company right now.
 -}
 data Company = Company {
-      name             :: String,
-      totalAssets      :: Integer,
-      totalLiabilities :: Integer,
-      marketCap        :: Integer
-   } deriving (Show,Read,Eq)
+  name             :: String,
+  totalAssets      :: Integer,
+  totalLiabilities :: Integer,
+  marketCap        :: Integer
+  } deriving (Show,Read,Eq)
 
 -- From all TagText objects, remove all white spaces
 dropWhitespace :: Tag String -> Tag String
@@ -60,9 +59,8 @@ dropEmpty (x:xs)            = x : dropEmpty xs
 -}
 getFromHTTP :: String -> ErrorW [Tag String]
 getFromHTTP link = do
-   http <- liftIO $ simpleHTTP (getRequest link) >>= getResponseBody
-   let tags = parseTags http
-   return $ dropEmpty (map dropWhitespace tags)
+  http <- liftIO $ simpleHTTP (getRequest link) >>= getResponseBody
+  return $ dropEmpty (map dropWhitespace (parseTags http))
 
 {-
    Generalized function for finding the financial data
@@ -76,8 +74,9 @@ getFromHTTP link = do
 -}
 getData :: [Tag String] -> String -> Int -> ErrorM -> ErrorW String
 getData tags key index err =
-   do let fTags = dropWhile (~/= (TagText key)) tags
-      case (length fTags) <= index of
-         False -> do let (TagText toReturn) = fTags !! index
-                     return toReturn
-         True  -> throwError err
+  do let fTags = dropWhile (~/= (TagText key)) tags
+     case (length fTags) <= index of
+       False -> do
+         let (TagText toReturn) = fTags !! index
+         return toReturn
+       True  -> throwError err
