@@ -19,8 +19,7 @@ main =
      r7  <- wrap genFromDolSign       prop_fromDolSign
      r8  <- wrap genFromMilDol        prop_fromMilDol
      r9  <- wrap genToMilSek          prop_toMilSek
-     r10 <- wrap genFromCommanotation prop_fromCommanotation
-     forM_ [r1, r2, r3, r4, r6, r7, r8, r9, r10] qcToTest
+     forM_ [r1, r2, r3, r4, r6, r7, r8, r9] qcToTest
   where wrap f p = quickCheckResult $ forAll f p
 
 -- Property...
@@ -137,15 +136,3 @@ prop_fromMilDol str =
 -- just verify that the new one is 000000 larger
 prop_toMilSek :: String -> Bool
 prop_toMilSek str = str ++ "000000" == show (fromJust $ toMilSek str)
-
--- fromCommanotation takes a String and returns a String
--- the result from running fromCommanotation should NOT include 'B'
--- adjAfter
-prop_fromCommanotation :: String -> Bool
-prop_fromCommanotation str = not (elem 'B' res) && beforeCom ++ adjAfter == res
-                             -- B should trail any number (B for billion)
-  where res       = fromCommanotation $ str ++ "B"
-        beforeCom = takeWhile (/=',') str
-        afterCom  = tail $ dropWhile (/=',') str
-        adjAfter  = afterCom ++ take (9 - length afterCom) (repeat '0')
-        -- add trailing 0's

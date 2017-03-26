@@ -9,6 +9,7 @@ module Text.HTML.ValueCalc
          isUnderValued,
          parseOMX,
          parseNasdaq,
+         toMilSek,
          ErrorW,
          Ticker
        ) where
