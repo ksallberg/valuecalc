@@ -9,6 +9,7 @@
 module Text.HTML.ValueCalc.Scraping
        (
          getData,
+         getSubId,
          Ticker,
          ErrorM,
          ErrorW,
@@ -80,3 +81,15 @@ getData tags key index err =
          let (TagText toReturn) = fTags !! index
          return toReturn
        True  -> throwError err
+
+getSubId :: [Tag String] -> String -> ErrorM -> ErrorW String
+getSubId [] _ err = throwError err
+getSubId ((TagOpen _ localLs):ts) id err =
+  do let fTags = ["yes" | ("id", x) <- localLs, x == id]
+     case (length fTags) > 0 of
+       True -> do
+         let (TagText toReturn) = head ts
+         return toReturn
+       False -> do
+         getSubId ts id err
+getSubId (_:ts) id err = getSubId ts id err

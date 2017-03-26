@@ -5,7 +5,8 @@ module Text.HTML.ValueCalc.Scrapers.OMXScraper
        , parseOMX
        , toMilSek
        , toBilSek
-       , fromCommanotation
+       , fromZeros
+       , prepare
        )
        where
 
@@ -42,25 +43,38 @@ liabErrorR = "Error reading refined total liabilities to Integer."
 -- give the balance sheet url, the one to get assets and liabilites from
 balanceSheetURL :: Ticker -> String
 balanceSheetURL tick
-  = "http://se.investing.com/equities/" ++ tick ++ "-balance-sheet"
+  -- = "http://se.investing.com/equities/" ++ tick ++ "-balance-sheet"
+  = "http://quotes.morningstar.com/stockq/c-financials?&t=XSTO:" ++ tick
 
 toMilSek :: String -> Maybe Integer
-toMilSek inp = readMaybe (inp ++ take 6 (repeat '0'))
+toMilSek inp = readMaybe (fromZeros ((prepare inp) ++ "B") 6 '.' 'B')
 
 toBilSek :: String -> Maybe Integer
-toBilSek inp = readMaybe (fromCommanotation inp)
+toBilSek inp = readMaybe (fromZeros ((prepare inp) ++ "B") 9 '.' 'B')
 
--- from something like 1,23B to 1230000000
-fromCommanotation :: String -> String
-fromCommanotation inp =
+prepare :: String -> String
+prepare inp = addPoint stage1
+  where stage1 = takeWhile (/= 'b') ([x | x <- inp, x /= ','])
+
+addPoint :: String -> String
+addPoint noComma =
+  case elem '.' noComma of
+    True ->
+      noComma
+    False ->
+      noComma ++ ".0"
+
+fromZeros :: String -> Int -> Char -> Char -> String
+fromZeros inp zer delim end =
   dropWhile (=='0') $ takeWhile c inp ++ follow ++ take lfoll (repeat '0')
-  where follow = tail $ takeWhile (/='B') $ dropWhile c inp
-        lfoll  = 9-length follow
-        c      = (/=',')
+  where follow = tail $ takeWhile (/=end) $ dropWhile c inp
+        lfoll  = zer - length follow
+        c      = (/=delim)
 
 -- give the market url, the one to get
 marketURL :: Ticker -> String
-marketURL tick = "http://se.investing.com/equities/" ++ tick
+marketURL tick
+  = "http://quotes.morningstar.com/stockq/c-header?&t=XSTO:" ++ tick
 
 {-
    Given a URL, load the content and look for
@@ -85,7 +99,7 @@ parseOMX ticker =
      totAssets   <- sFromJust (toMilSek totalAssets) asstErrorR
      totLiab     <- sFromJust (toMilSek totalLiab)   liabErrorR
      marketC     <- sFromJust (toBilSek marketCap)   mcapErrorR
-     return $ Company{name = ticker,
+     return $ Company{name             = ticker,
                       totalAssets      = totAssets,
                       totalLiabilities = totLiab,
                       marketCap        = marketC}
@@ -102,14 +116,14 @@ sFromJust (Just x) err = return x
    assets value for the given company
 -}
 getTotalAssets :: [Tag String] -> ErrorW String
-getTotalAssets t = getData t "Totalatillg\195\165ngar" 6 asstError
+getTotalAssets t = getData t "TotalAssets" 6 asstError
 
 {-
    OMX specific:
    Parse total liabilities
 -}
 getTotalLiabilities :: [Tag String] -> ErrorW String
-getTotalLiabilities t = getData t "Summaskulder" 6 liabError
+getTotalLiabilities t = getData t "TotalLiabilities" 6 liabError
 
 {-
    OMX specific:
@@ -117,5 +131,6 @@ getTotalLiabilities t = getData t "Summaskulder" 6 liabError
    data is fetched from
 -}
 getMarketCap :: String -> ErrorW String
-getMarketCap link =
-  getFromHTTP link >>= (\x->getData x "B\195\182rsv\195\164rde" 3 mcapError)
+getMarketCap link = do
+  t <- getFromHTTP link
+  getSubId t "MarketCap" mcapError
