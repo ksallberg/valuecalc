@@ -16,14 +16,12 @@ build-type:          Simple
 extra-source-files:  README.md
 cabal-version:       >=1.10
 
-library
-  exposed-modules:   Text.HTML.ValueCalc
-  build-depends:     base,
-                     mtl,
-                     tagsoup,
-                     HTTP,
-                     QuickCheck
-  default-language:  Haskell2010
+-- library
+--   exposed-modules:   Text.HTML.ValueCalc
+--   build-depends:     base,
+--                      mtl,
+--                      QuickCheck
+--   default-language:  Haskell2010
 
 executable valuecalc
   main-is:           Main.hs
@@ -31,9 +29,12 @@ executable valuecalc
   other-extensions:  PatternGuards
   build-depends:     base,
                      mtl,
-                     tagsoup,
-                     HTTP,
-                     QuickCheck
+                     QuickCheck,
+                     http-client,
+                     http-client-tls,
+                     bytestring,
+                     aeson
+
   -- hs-source-dirs:
   default-language:  Haskell2010
 
