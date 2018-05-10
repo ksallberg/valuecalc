@@ -33,6 +33,7 @@ executable valuecalc
                      http-client,
                      http-client-tls,
                      bytestring,
+                     pretty-simple,
                      aeson
 
   -- hs-source-dirs:

@@ -15,6 +15,9 @@ import           System.IO
 import           GHC.Generics
 import           Data.Aeson
 import           Data.Aeson.TH
+import           Data.Char
+import           Data.Maybe
+import           Text.Pretty.Simple (pPrint)
 
 data Earning = Earning {
   actualEPS :: Double,
@@ -22,36 +25,32 @@ data Earning = Earning {
   estimatedEPS :: Double,
   announceTime :: String,
   numberOfEstimates :: Int,
-  epsSurpriseDollar :: String,
-  -- epsReportDate :: String,
+  epsSurpriseDollar :: Double,
+  epsReportDate :: String,
   fiscalPeriod :: String,
   fiscalEndDate :: String
-} deriving (Show)
+} deriving (Generic, Show)
 
 data Earnings = Earnings {
   symbol :: String,
   earnings :: [Earning]
 } deriving (Generic, Show)
 
--- instance ToJSON Earning
 instance ToJSON Earnings
-
-$(deriveToJSON defaultOptions {
-     fieldLabelModifier = let f "EPSSurpriseDollar" = "epsSurpriseDollar"
-                              -- f "epsReportDate"     = "EPSReportDate"
-                              f other               = other
-                          in f
-     } ''Earning)
-
-$(deriveFromJSON defaultOptions {
-     fieldLabelModifier = let f epsSurpriseDollar = "EPSSurpriseDollar"
-                              -- f epsReportDate = "EPSReportDate"
-                              f other = other
-                          in f
-     } ''Earning)
-
--- instance FromJSON Earning
 instance FromJSON Earnings
+
+customOptions = defaultOptions {
+  fieldLabelModifier = let f "epsSurpriseDollar" = "EPSSurpriseDollar"
+                           f "epsReportDate" = "EPSReportDate"
+                           f other = other
+                       in f
+  }
+
+-- FromJSON means parsing the text into a haskell data structure
+instance FromJSON Earning where
+  parseJSON = genericParseJSON customOptions
+-- ToJSON means taking a haskell data structure and making a JSON string
+instance ToJSON Earning
 
 base :: String
 base = "https://api.iextrading.com/1.0"
@@ -67,5 +66,4 @@ printResponse manager path = do
   response <- httpLbs request manager
   let str  = (responseBody response) :: L8.ByteString
       json = decode str :: Maybe Earnings
-  putStrLn $ (L8.unpack str)
-  putStrLn $ "____" ++ (show json)
+  pPrint (fromJust json)
