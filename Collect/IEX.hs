@@ -14,7 +14,12 @@ module Collect.IEX
          testFin,
          testStats,
          testNews,
-         testOHLC
+         testOHLC,
+         testPrev,
+         testPrice,
+         testQuote,
+         testSplit,
+         testVBV
        ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -246,6 +251,77 @@ data PriceTime = PriceTime {
   time :: Integer
 } deriving (Generic, Show)
 
+data Previous = Previous {
+  symbol :: String,
+  date :: String,
+  open :: Double,
+  high :: Double,
+  low :: Double,
+  close :: Double,
+  volume :: Integer,
+  unadjustedVolume :: Integer,
+  change :: Double,
+  changePercent :: Double,
+  vwap :: Double
+} deriving (Generic, Show)
+
+data Quote = Quote {
+  symbol :: String,
+  companyName :: String,
+  primaryExchange :: String,
+  sector :: String,
+  calculationPrice :: String,
+  open :: Double,
+  openTime :: Integer,
+  close :: Double,
+  closeTime :: Integer,
+  high :: Double,
+  low :: Double,
+  latestPrice :: Double,
+  latestSource :: String,
+  latestTime :: String,
+  latestUpdate :: Integer,
+  latestVolume :: Integer,
+  iexRealtimePrice :: Double,
+  iexRealtimeSize :: Integer,
+  iexLastUpdated :: Integer,
+  delayedPrice :: Double,
+  delayedPriceTime :: Integer,
+  previousClose :: Double,
+  change :: Double,
+  changePercent :: Double,
+  iexMarketPercent :: Double,
+  iexVolume :: Integer,
+  avgTotalVolume :: Integer,
+  iexBidPrice :: Double,
+  iexBidSize :: Integer,
+  iexAskPrice :: Double,
+  iexAskSize :: Integer,
+  marketCap :: Integer,
+  peRatio :: Double,
+  week52High :: Double,
+  week52Low :: Double,
+  ytdChange :: Double
+} deriving (Generic, Show)
+
+data Split = Split {
+  exDate :: String,
+  declaredDate :: String,
+  recordDate :: String,
+  paymentDate :: String,
+  ratio :: Double,
+  toFactor :: Integer,
+  forFactor :: Integer
+} deriving (Generic, Show)
+
+data VolumeByVenue = VolumeByVenue {
+  volume :: Integer,
+  venue :: String,
+  venueName :: String,
+  date :: String,
+  marketPercent :: Double,
+  avgMarketPercent :: Double
+} deriving (Generic, Show)
 
 -- special handling of label names
 customOptionsCompany =
@@ -262,7 +338,7 @@ customOptionsDividend =
                          in f
     }
 
-customOptions =
+customOptionsEarning =
   defaultOptions {
     fieldLabelModifier = let f "epsSurpriseDollar" = "EPSSurpriseDollar"
                              f "epsReportDate" = "EPSReportDate"
@@ -284,6 +360,10 @@ instance ToJSON Stats
 instance ToJSON NewsItem
 instance ToJSON OHLC
 instance ToJSON PriceTime
+instance ToJSON Previous
+instance ToJSON Quote
+instance ToJSON Split
+instance ToJSON VolumeByVenue
 
 -- FromJSON means parsing the text into a haskell data structure
 instance FromJSON Chart
@@ -294,7 +374,7 @@ instance FromJSON Dividend where
   parseJSON = genericParseJSON customOptionsDividend
 instance FromJSON Earnings
 instance FromJSON Earning where
-  parseJSON = genericParseJSON customOptions
+  parseJSON = genericParseJSON customOptionsEarning
 instance FromJSON EffectiveSpread
 instance FromJSON Financial
 instance FromJSON Financials
@@ -302,6 +382,10 @@ instance FromJSON Stats
 instance FromJSON NewsItem
 instance FromJSON OHLC
 instance FromJSON PriceTime
+instance FromJSON Previous
+instance FromJSON Quote
+instance FromJSON Split
+instance FromJSON VolumeByVenue
 
 base :: String
 base = "https://api.iextrading.com/1.0"
@@ -367,6 +451,36 @@ testOHLC = do
   manager  <- newManager tlsManagerSettings
   json <- fetch manager "/stock/aapl/ohlc"
   pPrint (fromJust (decode json :: Maybe OHLC))
+
+testPrev :: IO ()
+testPrev = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/previous"
+  pPrint (fromJust (decode json :: Maybe Previous))
+
+testPrice :: IO ()
+testPrice = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/price"
+  pPrint (fromJust (decode json :: Maybe Integer))
+
+testQuote :: IO ()
+testQuote = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/quote"
+  pPrint (fromJust (decode json :: Maybe Quote))
+
+testSplit :: IO ()
+testSplit = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/splits/5y"
+  pPrint (fromJust (decode json :: Maybe [Split]))
+
+testVBV :: IO ()
+testVBV = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/volume-by-venue"
+  pPrint (fromJust (decode json :: Maybe [VolumeByVenue]))
 
 fetch :: Manager -> String -> IO (L8.ByteString)
 fetch manager path = do
