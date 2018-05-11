@@ -20,7 +20,6 @@ module Collect.IEX
 import qualified Data.ByteString.Lazy.Char8 as L8
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
--- import           Network.HTTP.Types.Status
 import           System.IO
 import           GHC.Generics
 import           Data.Aeson
@@ -29,40 +28,38 @@ import           Data.Char
 import           Data.Maybe
 import           Text.Pretty.Simple (pPrint)
 
-type IEXNumber = Double
-
 data Chart = Chart {
   -- is only available on 1d chart.
   minute :: Maybe String,
   -- is only available on 1d chart. 15 minute delayed
-  marketAverage :: Maybe IEXNumber,
+  marketAverage :: Maybe Double,
   -- is only available on 1d chart. 15 minute delayed
-  marketNotional :: Maybe IEXNumber,
+  marketNotional :: Maybe Double,
   -- is only available on 1d chart. 15 minute delayed
-  marketNumberOfTrades :: Maybe IEXNumber,
+  marketNumberOfTrades :: Maybe Double,
   -- is only available on 1d chart. 15 minute delayed
-  marketHigh :: Maybe IEXNumber,
+  marketHigh :: Maybe Double,
   -- is only available on 1d chart. 15 minute delayed
-  marketLow :: Maybe IEXNumber,
+  marketLow :: Maybe Double,
   -- is only available on 1d chart. 15 minute delayed
-  marketVolume :: Maybe IEXNumber,
+  marketVolume :: Maybe Double,
   -- is only available on 1d chart. Percent change
   -- of each interval relative to first value. 15 minute delayed
-  marketChangeOverTime :: Maybe IEXNumber,
+  marketChangeOverTime :: Maybe Double,
   -- is only available on 1d chart.
-  average :: Maybe IEXNumber,
+  average :: Maybe Double,
   -- is only available on 1d chart.
-  notional :: Maybe IEXNumber,
+  notional :: Maybe Double,
   -- is only available on 1d chart.
-  numberOfTrades :: Maybe IEXNumber,
+  numberOfTrades :: Maybe Double,
   -- is only available on 1d chart, and only when chartSimplify is true.
   -- The first element is the original number of points.
   -- Second element is how many remain after simplification.
   simplifyFactor :: Maybe [Integer],
   -- is available on all charts.
-  high :: IEXNumber,
+  high :: Double,
   -- is available on all charts.
-  low :: IEXNumber,
+  low :: Double,
   -- is available on all charts.
   volume :: Integer,
   -- is available on all charts. A variable formatted version of
@@ -70,25 +67,22 @@ data Chart = Chart {
   label :: String,
   -- is available on all charts. Percent change of each interval
   -- relative to first value. Useful for comparing multiple stocks.
-  changeOverTime :: IEXNumber,
+  changeOverTime :: Double,
   -- is not available on 1d chart.
   date :: Maybe String,
   -- is not available on 1d chart.
-  open :: Maybe IEXNumber,
+  open :: Maybe Double,
   -- is not available on 1d chart.
-  close :: Maybe IEXNumber,
+  close :: Maybe Double,
   -- is not available on 1d chart.
   unadjustedVolume :: Maybe Integer,
   -- is not available on 1d chart.
-  change :: Maybe IEXNumber,
+  change :: Maybe Double,
   -- is not available on 1d chart.
-  changePercent :: Maybe IEXNumber,
+  changePercent :: Maybe Double,
   -- is not available on 1d chart.
-  vwap :: Maybe IEXNumber
+  vwap :: Maybe Double
 } deriving (Generic, Show)
-
-instance ToJSON Chart
-instance FromJSON Chart
 
 data Company = Company {
   symbol :: String,
@@ -102,54 +96,27 @@ data Company = Company {
   sector :: String
 } deriving (Generic, Show)
 
-customOptionsCompany = defaultOptions {
-  fieldLabelModifier = let f "ceo" = "CEO"
-                           f other = other
-                       in f
-  }
-
--- FromJSON means parsing the text into a haskell data structure
-instance FromJSON Company where
-  parseJSON = genericParseJSON customOptionsCompany
--- ToJSON means taking a haskell data structure and making a JSON string
-instance ToJSON Company
-
 data DelayedQuote = DelayedQuote {
   symbol :: String,
-  delayedPrice :: IEXNumber,
-  high :: IEXNumber,
-  low :: IEXNumber,
-  delayedSize :: IEXNumber,
+  delayedPrice :: Double,
+  high :: Double,
+  low :: Double,
+  delayedSize :: Double,
   delayedPriceTime :: Integer,
   processedTime :: Integer
 } deriving (Generic, Show)
-
-instance FromJSON DelayedQuote
-instance ToJSON DelayedQuote
 
 data Dividend = Dividend {
   exDate :: String,
   paymentDate :: String,
   recordDate :: String,
   declaredDate :: String,
-  amount :: IEXNumber,
+  amount :: Double,
   flag :: String,
   dtype :: String,
   qualified :: String,
   indicated :: String
 } deriving (Generic, Show)
-
-customOptionsDividend = defaultOptions {
-  fieldLabelModifier = let f "dtype" = "type"
-                           f other = other
-                       in f
-  }
-
--- FromJSON means parsing the text into a haskell data structure
-instance FromJSON Dividend where
-  parseJSON = genericParseJSON customOptionsDividend
--- ToJSON means taking a haskell data structure and making a JSON string
-instance ToJSON Dividend
 
 data Earning = Earning {
   actualEPS :: Double,
@@ -168,33 +135,14 @@ data Earnings = Earnings {
   earnings :: [Earning]
 } deriving (Generic, Show)
 
-instance ToJSON Earnings
-instance FromJSON Earnings
-
-customOptions = defaultOptions {
-  fieldLabelModifier = let f "epsSurpriseDollar" = "EPSSurpriseDollar"
-                           f "epsReportDate" = "EPSReportDate"
-                           f other = other
-                       in f
-  }
-
--- FromJSON means parsing the text into a haskell data structure
-instance FromJSON Earning where
-  parseJSON = genericParseJSON customOptions
--- ToJSON means taking a haskell data structure and making a JSON string
-instance ToJSON Earning
-
 data EffectiveSpread = EffectiveSpread {
   volume :: Integer,
   venue :: String,
   venueName :: String,
-  effectiveSpread :: IEXNumber,
-  effectiveQuoted :: IEXNumber,
-  priceImprovement :: IEXNumber
+  effectiveSpread :: Double,
+  effectiveQuoted :: Double,
+  priceImprovement :: Double
 } deriving (Generic, Show)
-
-instance ToJSON EffectiveSpread
-instance FromJSON EffectiveSpread
 
 data Financial = Financial {
   reportDate :: String,
@@ -218,17 +166,6 @@ data Financial = Financial {
   cashFlow :: Integer,
   operatingGainsLosses :: Maybe String
 } deriving (Generic, Show)
-
-instance ToJSON Financial
-instance FromJSON Financial
-
-data Financials = Financials {
-  symbol :: String,
-  financials :: [Financial]
-} deriving (Generic, Show)
-
-instance ToJSON Financials
-instance FromJSON Financials
 
 data Stats = Stats {
   companyName :: String,
@@ -283,9 +220,6 @@ data Stats = Stats {
   day30ChangePercent :: Double
 } deriving (Generic, Show)
 
-instance ToJSON Stats
-instance FromJSON Stats
-
 data NewsItem = NewsItem {
   datetime :: String,
   headline :: String,
@@ -295,8 +229,10 @@ data NewsItem = NewsItem {
   related :: String
 } deriving (Generic, Show)
 
-instance ToJSON NewsItem
-instance FromJSON NewsItem
+data Financials = Financials {
+  symbol :: String,
+  financials :: [Financial]
+} deriving (Generic, Show)
 
 data OHLC = OHLC {
   open :: PriceTime,
@@ -305,19 +241,72 @@ data OHLC = OHLC {
   low :: Double
 } deriving (Generic, Show)
 
-instance ToJSON OHLC
-instance FromJSON OHLC
-
 data PriceTime = PriceTime {
   price :: Double,
   time :: Integer
 } deriving (Generic, Show)
 
+
+-- special handling of label names
+customOptionsCompany =
+  defaultOptions {
+    fieldLabelModifier = let f "ceo" = "CEO"
+                             f other = other
+                         in f
+    }
+
+customOptionsDividend =
+  defaultOptions {
+    fieldLabelModifier = let f "dtype" = "type"
+                             f other = other
+                         in f
+    }
+
+customOptions =
+  defaultOptions {
+    fieldLabelModifier = let f "epsSurpriseDollar" = "EPSSurpriseDollar"
+                             f "epsReportDate" = "EPSReportDate"
+                             f other = other
+                         in f
+    }
+
+-- ToJSON means taking a haskell data structure and making a JSON string
+instance ToJSON Chart
+instance ToJSON Company
+instance ToJSON DelayedQuote
+instance ToJSON Dividend
+instance ToJSON Earnings
+instance ToJSON Earning
+instance ToJSON EffectiveSpread
+instance ToJSON Financial
+instance ToJSON Financials
+instance ToJSON Stats
+instance ToJSON NewsItem
+instance ToJSON OHLC
 instance ToJSON PriceTime
+
+-- FromJSON means parsing the text into a haskell data structure
+instance FromJSON Chart
+instance FromJSON Company where
+  parseJSON = genericParseJSON customOptionsCompany
+instance FromJSON DelayedQuote
+instance FromJSON Dividend where
+  parseJSON = genericParseJSON customOptionsDividend
+instance FromJSON Earnings
+instance FromJSON Earning where
+  parseJSON = genericParseJSON customOptions
+instance FromJSON EffectiveSpread
+instance FromJSON Financial
+instance FromJSON Financials
+instance FromJSON Stats
+instance FromJSON NewsItem
+instance FromJSON OHLC
 instance FromJSON PriceTime
 
 base :: String
 base = "https://api.iextrading.com/1.0"
+
+-- developer testing utils:
 
 testChart :: IO ()
 testChart = do
