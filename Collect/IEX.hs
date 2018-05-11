@@ -11,7 +11,10 @@ module Collect.IEX
          testDQ,
          testDividend,
          testES,
-         testFin
+         testFin,
+         testStats,
+         testNews,
+         testOHLC
        ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -227,6 +230,92 @@ data Financials = Financials {
 instance ToJSON Financials
 instance FromJSON Financials
 
+data Stats = Stats {
+  companyName :: String,
+  marketcap :: Integer,
+  beta :: Double,
+  week52high :: Double,
+  week52low :: Double,
+  week52change :: Double,
+  shortInterest :: Integer,
+  shortDate :: String,
+  dividendRate :: Double,
+  dividendYield :: Double,
+  exDividendDate :: String,
+  latestEPS :: Double,
+  latestEPSDate :: String,
+  sharesOutstanding :: Integer,
+  float :: Integer,
+  returnOnEquity :: Double,
+  consensusEPS :: Double,
+  numberOfEstimates :: Integer,
+  -- EPSSurpriseDollar
+  -- EPSSurprisePercent
+  symbol :: String,
+  -- EBITDA
+  revenue :: Integer,
+  grossProfit :: Integer,
+  cash :: Integer,
+  debt :: Integer,
+  ttmEPS :: Double,
+  revenuePerShare :: Integer,
+  revenuePerEmployee :: Integer,
+  peRatioHigh :: Double,
+  peRatioLow :: Double,
+  returnOnAssets :: Double,
+  returnOnCapital :: Maybe Double,
+  profitMargin :: Double,
+  priceToSales :: Double,
+  priceToBook :: Double,
+  day200MovingAvg :: Double,
+  day50MovingAvg :: Double,
+  institutionPercent :: Double,
+  insiderPercent :: Maybe Double,
+  shortRatio :: Maybe Double,
+  year5ChangePercent :: Double,
+  year2ChangePercent :: Double,
+  year1ChangePercent :: Double,
+  ytdChangePercent :: Double,
+  month6ChangePercent :: Double,
+  month3ChangePercent :: Double,
+  month1ChangePercent :: Double,
+  day5ChangePercent :: Double,
+  day30ChangePercent :: Double
+} deriving (Generic, Show)
+
+instance ToJSON Stats
+instance FromJSON Stats
+
+data NewsItem = NewsItem {
+  datetime :: String,
+  headline :: String,
+  source :: String,
+  url :: String,
+  summary :: String,
+  related :: String
+} deriving (Generic, Show)
+
+instance ToJSON NewsItem
+instance FromJSON NewsItem
+
+data OHLC = OHLC {
+  open :: PriceTime,
+  close :: PriceTime,
+  high :: Double,
+  low :: Double
+} deriving (Generic, Show)
+
+instance ToJSON OHLC
+instance FromJSON OHLC
+
+data PriceTime = PriceTime {
+  price :: Double,
+  time :: Integer
+} deriving (Generic, Show)
+
+instance ToJSON PriceTime
+instance FromJSON PriceTime
+
 base :: String
 base = "https://api.iextrading.com/1.0"
 
@@ -271,6 +360,24 @@ testFin = do
   manager  <- newManager tlsManagerSettings
   json <- fetch manager "/stock/aapl/financials"
   pPrint (fromJust (decode json :: Maybe Financials))
+
+testStats :: IO ()
+testStats = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/stats"
+  pPrint (fromJust (decode json :: Maybe Stats))
+
+testNews :: IO ()
+testNews = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/news/last/1"
+  pPrint (fromJust (decode json :: Maybe [NewsItem]))
+
+testOHLC :: IO ()
+testOHLC = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/ohlc"
+  pPrint (fromJust (decode json :: Maybe OHLC))
 
 fetch :: Manager -> String -> IO (L8.ByteString)
 fetch manager path = do
