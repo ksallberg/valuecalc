@@ -24,7 +24,7 @@ import System.IO
 --      putStrLn "-end of nasdaq-"
 
 main :: IO ()
-main = testIEX
+main = putStrLn "hello"
 
 -- loadTickers :: FilePath -> IO [String]
 -- loadTickers fp = readFile fp >>= \f-> return . lines $ f

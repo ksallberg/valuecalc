@@ -1,10 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Collect.IEX
        (
-         testIEX
+         testEarnings,
+         testCompany,
+         testChart,
+         testDQ,
+         testDividend,
+         testES,
+         testFin
        ) where
 
 import qualified Data.ByteString.Lazy.Char8 as L8
@@ -18,6 +25,128 @@ import           Data.Aeson.TH
 import           Data.Char
 import           Data.Maybe
 import           Text.Pretty.Simple (pPrint)
+
+type IEXNumber = Double
+
+data Chart = Chart {
+  -- is only available on 1d chart.
+  minute :: Maybe String,
+  -- is only available on 1d chart. 15 minute delayed
+  marketAverage :: Maybe IEXNumber,
+  -- is only available on 1d chart. 15 minute delayed
+  marketNotional :: Maybe IEXNumber,
+  -- is only available on 1d chart. 15 minute delayed
+  marketNumberOfTrades :: Maybe IEXNumber,
+  -- is only available on 1d chart. 15 minute delayed
+  marketHigh :: Maybe IEXNumber,
+  -- is only available on 1d chart. 15 minute delayed
+  marketLow :: Maybe IEXNumber,
+  -- is only available on 1d chart. 15 minute delayed
+  marketVolume :: Maybe IEXNumber,
+  -- is only available on 1d chart. Percent change
+  -- of each interval relative to first value. 15 minute delayed
+  marketChangeOverTime :: Maybe IEXNumber,
+  -- is only available on 1d chart.
+  average :: Maybe IEXNumber,
+  -- is only available on 1d chart.
+  notional :: Maybe IEXNumber,
+  -- is only available on 1d chart.
+  numberOfTrades :: Maybe IEXNumber,
+  -- is only available on 1d chart, and only when chartSimplify is true.
+  -- The first element is the original number of points.
+  -- Second element is how many remain after simplification.
+  simplifyFactor :: Maybe [Integer],
+  -- is available on all charts.
+  high :: IEXNumber,
+  -- is available on all charts.
+  low :: IEXNumber,
+  -- is available on all charts.
+  volume :: Integer,
+  -- is available on all charts. A variable formatted version of
+  -- the date depending on the range. Optional convienience field.
+  label :: String,
+  -- is available on all charts. Percent change of each interval
+  -- relative to first value. Useful for comparing multiple stocks.
+  changeOverTime :: IEXNumber,
+  -- is not available on 1d chart.
+  date :: Maybe String,
+  -- is not available on 1d chart.
+  open :: Maybe IEXNumber,
+  -- is not available on 1d chart.
+  close :: Maybe IEXNumber,
+  -- is not available on 1d chart.
+  unadjustedVolume :: Maybe Integer,
+  -- is not available on 1d chart.
+  change :: Maybe IEXNumber,
+  -- is not available on 1d chart.
+  changePercent :: Maybe IEXNumber,
+  -- is not available on 1d chart.
+  vwap :: Maybe IEXNumber
+} deriving (Generic, Show)
+
+instance ToJSON Chart
+instance FromJSON Chart
+
+data Company = Company {
+  symbol :: String,
+  companyName :: String,
+  exchange :: String,
+  industry :: String,
+  website :: String,
+  description :: String,
+  ceo :: String,
+  issueType :: String,
+  sector :: String
+} deriving (Generic, Show)
+
+customOptionsCompany = defaultOptions {
+  fieldLabelModifier = let f "ceo" = "CEO"
+                           f other = other
+                       in f
+  }
+
+-- FromJSON means parsing the text into a haskell data structure
+instance FromJSON Company where
+  parseJSON = genericParseJSON customOptionsCompany
+-- ToJSON means taking a haskell data structure and making a JSON string
+instance ToJSON Company
+
+data DelayedQuote = DelayedQuote {
+  symbol :: String,
+  delayedPrice :: IEXNumber,
+  high :: IEXNumber,
+  low :: IEXNumber,
+  delayedSize :: IEXNumber,
+  delayedPriceTime :: Integer,
+  processedTime :: Integer
+} deriving (Generic, Show)
+
+instance FromJSON DelayedQuote
+instance ToJSON DelayedQuote
+
+data Dividend = Dividend {
+  exDate :: String,
+  paymentDate :: String,
+  recordDate :: String,
+  declaredDate :: String,
+  amount :: IEXNumber,
+  flag :: String,
+  dtype :: String,
+  qualified :: String,
+  indicated :: String
+} deriving (Generic, Show)
+
+customOptionsDividend = defaultOptions {
+  fieldLabelModifier = let f "dtype" = "type"
+                           f other = other
+                       in f
+  }
+
+-- FromJSON means parsing the text into a haskell data structure
+instance FromJSON Dividend where
+  parseJSON = genericParseJSON customOptionsDividend
+-- ToJSON means taking a haskell data structure and making a JSON string
+instance ToJSON Dividend
 
 data Earning = Earning {
   actualEPS :: Double,
@@ -52,18 +181,99 @@ instance FromJSON Earning where
 -- ToJSON means taking a haskell data structure and making a JSON string
 instance ToJSON Earning
 
+data EffectiveSpread = EffectiveSpread {
+  volume :: Integer,
+  venue :: String,
+  venueName :: String,
+  effectiveSpread :: IEXNumber,
+  effectiveQuoted :: IEXNumber,
+  priceImprovement :: IEXNumber
+} deriving (Generic, Show)
+
+instance ToJSON EffectiveSpread
+instance FromJSON EffectiveSpread
+
+data Financial = Financial {
+  reportDate :: String,
+  grossProfit :: Integer,
+  costOfRevenue :: Integer,
+  operatingRevenue :: Integer,
+  totalRevenue :: Integer,
+  operatingIncome :: Integer,
+  netIncome :: Integer,
+  researchAndDevelopment :: Integer,
+  operatingExpense :: Integer,
+  currentAssets :: Integer,
+  totalAssets :: Integer,
+  totalLiabilities :: Maybe Integer,
+  currentCash :: Integer,
+  currentDebt :: Integer,
+  totalCash :: Integer,
+  totalDebt :: Integer,
+  shareholderEquity :: Integer,
+  cashChange :: Integer,
+  cashFlow :: Integer,
+  operatingGainsLosses :: Maybe String
+} deriving (Generic, Show)
+
+instance ToJSON Financial
+instance FromJSON Financial
+
+data Financials = Financials {
+  symbol :: String,
+  financials :: [Financial]
+} deriving (Generic, Show)
+
+instance ToJSON Financials
+instance FromJSON Financials
+
 base :: String
 base = "https://api.iextrading.com/1.0"
 
-testIEX :: IO ()
-testIEX = do
+testChart :: IO ()
+testChart = do
   manager  <- newManager tlsManagerSettings
-  printResponse manager "/stock/aapl/earnings"
+  json <- fetch manager "/stock/aapl/chart"
+  pPrint (fromJust (decode json :: Maybe [Chart]))
 
-printResponse :: Manager -> String -> IO ()
-printResponse manager path = do
+testCompany :: IO ()
+testCompany = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/company"
+  pPrint (fromJust (decode json :: Maybe Company))
+
+testDQ :: IO ()
+testDQ = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/delayed-quote"
+  pPrint (fromJust (decode json :: Maybe DelayedQuote))
+
+testDividend :: IO ()
+testDividend = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/dividends/5y"
+  pPrint (fromJust (decode json :: Maybe [Dividend]))
+
+testEarnings :: IO ()
+testEarnings = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/earnings"
+  pPrint (fromJust (decode json :: Maybe Earnings))
+
+testES :: IO ()
+testES = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/effective-spread"
+  pPrint (fromJust (decode json :: Maybe [EffectiveSpread]))
+
+testFin :: IO ()
+testFin = do
+  manager  <- newManager tlsManagerSettings
+  json <- fetch manager "/stock/aapl/financials"
+  pPrint (fromJust (decode json :: Maybe Financials))
+
+fetch :: Manager -> String -> IO (L8.ByteString)
+fetch manager path = do
   request  <- parseRequest (base ++ path)
   response <- httpLbs request manager
-  let str  = (responseBody response) :: L8.ByteString
-      json = decode str :: Maybe Earnings
-  pPrint (fromJust json)
+  return (responseBody response :: L8.ByteString)
